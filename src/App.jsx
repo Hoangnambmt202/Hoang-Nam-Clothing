@@ -1,23 +1,18 @@
-import { Outlet, Link } from "react-router-dom";
 import "./App.css";
-export default function App() {
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import routes from "./routes";
+
+function App() {
   return (
-    <div>
-      <nav>
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/about">About</Link>
-          </li>
-          <li>
-            <Link to="/contact">Contact</Link>
-          </li>
-        </ul>
-      </nav>
-      {/* Nội dung các trang */}
-      <Outlet />
-    </div>
+    <Router>
+      <Routes>
+        {routes.map((route, index) => {
+          const Page = route.page;
+          return <Route key={index} path={route.path} element={<Page />} />;
+        })}
+      </Routes>
+    </Router>
   );
 }
+
+export default App;
