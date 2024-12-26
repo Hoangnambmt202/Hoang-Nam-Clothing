@@ -1,3 +1,4 @@
+
 import CarouselComponent from "../../components/CarouselComponent/CarouselComponent";
 import NewsletterComponent from "../../components/NewletterComponent/NewletterComponent";
 
@@ -51,9 +52,8 @@ const categories = [
       "https://images.pexels.com/photos/343720/pexels-photo-343720.jpeg?auto=compress&cs=tinysrgb&w=600",
   },
 ];
-
 const HomePage = () => {
- 
+
 
   return (
     <div className="container p-4 mx-auto">
