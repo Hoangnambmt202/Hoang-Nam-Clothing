@@ -1,3 +1,4 @@
+
 import CartPage from "../pages/CartPage/CartPage";
 import CheckoutPage from "../pages/CheckoutPage/CheckoutPage";
 import ContactPage from "../pages/ContactPage";
@@ -6,6 +7,7 @@ import HomePage from "../pages/HomePage/HomePage";
 import NewArrivalsPage from "../pages/NewArrivalsPage/NewArrivalsPage";
 import NotFoundPage from "../pages/NotFoundPage/NotFoundPage";
 import ProductPage from "../pages/ProductPage/ProductsPage";
+import UserPage from "../pages/UserPage/UserPage";
 
 
 const routes = [
@@ -49,6 +51,11 @@ const routes = [
     page: CheckoutPage,
     isShowHeader: true,
   },
+  {
+    path: "/user",
+    page: UserPage,
+    isShowHeader: true,
+  }
  
 ];
 export default routes;

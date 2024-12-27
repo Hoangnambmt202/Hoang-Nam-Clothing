@@ -1,6 +1,6 @@
 import  { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
+import {Link} from "react-router-dom";
 
 const CarouselComponent = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -40,7 +40,7 @@ const CarouselComponent = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto h-96">
+    <div className="relative w-full mx-auto h-96">
       {/* Main carousel container */}
       <div className="relative h-full overflow-hidden rounded-lg">
         {/* Slides */}
@@ -62,9 +62,11 @@ const CarouselComponent = () => {
               <div className="relative z-10 p-8 text-center text-white">
                 <h2 className="mb-4 text-3xl font-bold">{slide.title}</h2>
                 <p className="mb-4 text-lg">{slide.description}</p>
+                <Link to="/collection" >
                 <button className="px-8 py-3 text-black transition duration-300 bg-white hover:bg-black hover:text-white">
                   KHÁM PHÁ NGAY
                 </button>
+                </Link>
               </div>
             </div>
           ))}

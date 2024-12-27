@@ -62,11 +62,11 @@ const HomePage = () => {
       </div>
 
       <section className="py-20 bg-gray-50">
-        <div className="px-4 mx-auto max-w-7xl">
+        <div className="px-4 mx-auto ">
           <h2 className="mb-12 text-3xl font-light text-center">
             DANH MỤC SẢN PHẨM
           </h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3 lg:grid-cols-4">
             {categories.map((category, index) => (
               <div
                 key={index}
@@ -111,8 +111,8 @@ const HomePage = () => {
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <h3 className="text-2xl font-medium ">{product.name}</h3>
-                  <p className="text-xl text-gray-600">{product.price}</p>
+                  <h3 className="text-lg font-medium ">{product.name}</h3>
+                  <p className="text-lg text-gray-600">{product.price}</p>
                 </div>
               </div>
             ))}

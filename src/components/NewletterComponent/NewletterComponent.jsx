@@ -23,12 +23,12 @@ const NewsletterComponent = () => {
             placeholder="Email của bạn"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 px-4 py-2 text-xl text-black outline-none"
+            className="flex-1 px-4 py-2 text-lg text-black outline-none"
             required
           />
           <button
             type="submit"
-            className="px-6 py-2 text-xl text-black transition-colors bg-white hover:bg-gray-200"
+            className="px-6 py-2 text-lg text-black transition-colors bg-white hover:bg-gray-200"
           >
             Đăng ký
           </button>

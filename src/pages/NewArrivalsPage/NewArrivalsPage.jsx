@@ -27,10 +27,10 @@ const NewArrivalsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen py-10 bg-gray-100">
+    <div className="min-h-screen py-10 bg-gray-100 ">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <h1 className="mb-10 text-3xl font-bold text-center">Hàng Mới</h1>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {products.map((product) => (
             <div
               key={product.id}
