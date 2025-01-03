@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: "./src/.env" });
 const express = require("express");
 const cors = require("cors");
 const { mongoose } = require("mongoose");
@@ -6,7 +6,7 @@ const routes = require("./routes");
 const bodyParser = require("body-parser");
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT;
 
 // Middleware
 app.use(cors());
@@ -28,5 +28,4 @@ mongoose
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  
 });

@@ -107,8 +107,32 @@ const updateUser = (id,data) => {
     }
   });
 };
+const deleteUser = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const checkUser = await User.findOne({ _id: id });
+      // console.log("checkUser:", checkUser);
+      if (checkUser === null) {
+        resolve({
+          status: "OK",
+          message: "Không tìm thầy người dùng",
+        });
+      }
+      // await User.findByIdAndDelete(id);
+
+      resolve({
+        status: "OK",
+        message: `Xoá thành công user: ${checkUser.name} với email :${checkUser.email}`,
+  
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 module.exports = {
   createUser,
   loginUser,
   updateUser,
+  deleteUser,
 };

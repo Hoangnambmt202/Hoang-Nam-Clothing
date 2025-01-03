@@ -87,8 +87,30 @@ const updateUser = async (req, res) => {
     });
   }
 }
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const token = req.headers;
+    console.log(token);
+    
+    if (!userId) {
+      return res.status(200).json({
+        status: "err",
+        message: "the user id is required",
+      });
+    }
+
+    const response = await UserService.deleteUser(userId);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
 module.exports = {
     createUser,
     loginUser,
     updateUser,
+    deleteUser,
 }
