@@ -1,4 +1,7 @@
 const User = require("../models/User");
+const bcrypt = require("bcrypt");
+const { generalAccessToken } = require("./JwtService");
+
 
 const createUser = (newUser) => {
     return new Promise(async (resolve, reject) => {
@@ -14,12 +17,12 @@ const createUser = (newUser) => {
           })
         }
 
+        const hash = bcrypt.hashSync(password, 10);
         const createdUser = await User.create({
           name,
           email, 
           phone,
-          password, 
-          confirmPassword 
+          password: hash, 
         })
         if(createdUser) {
           resolve({
@@ -34,6 +37,78 @@ const createUser = (newUser) => {
       }
     })
 }
+const loginUser = (userLogin) => {
+  return new Promise(async (resolve, reject) => {
+    const { name, email, phone, password, confirmPassword } = userLogin;
+    try {
+      const checkUser = await User.findOne({
+        email: email,
+      });
+      if (checkUser === null) {
+        resolve({
+          status: "ÔK",
+          message: "User not found",
+        });
+      }
+      const checkPassword = bcrypt.compareSync(password, checkUser.password);
+
+      
+      if (!checkPassword) {
+        resolve({
+          status: "OK",
+          message: "Mật khẩu không đúng. Vui lòng thử lại!",
+          data: checkUser,
+        });
+      }
+      
+      const access_token = await generalAccessToken(
+        {
+          _id: checkUser._id,
+         isAdmin : checkUser.isAdmin,
+        }
+      );
+   
+
+      resolve({
+        status: "OK",
+        message: "Đăng nhập thành công",
+        access_token,
+
+
+      });
+      
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+const updateUser = (id,data) => {
+  return new Promise(async (resolve, reject) => {
+   
+    try {
+      const checkUser = await User.findOne({_id:id});
+      console.log('checkUser:',checkUser);
+      if(checkUser === null) {
+        resolve({
+          status: "OK",
+          message: "User not found"
+        })
+      };
+      const updatedUser = await User.findByIdAndUpdate(id,data, {new: true});
+
+      
+      resolve({
+        status: "OK",
+        message: `Cập nhật thành công cho user:  ${updatedUser.name} `,
+        data: updatedUser,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 module.exports = {
   createUser,
+  loginUser,
+  updateUser,
 };

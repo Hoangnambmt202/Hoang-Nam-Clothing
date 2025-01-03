@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { default: mongoose } = require("mongoose");
+const { mongoose } = require("mongoose");
 const routes = require("./routes");
 const bodyParser = require("body-parser");
 
@@ -14,16 +14,6 @@ app.use(express.json());
 app.use(bodyParser.json());
 // Routes
 routes(app);
-
-// Example API endpoint
-app.get("/products", (req, res) => {
-  const products = [
-    { id: 1, name: "T-Shirt", price: 199 },
-    { id: 2, name: "Hoodie", price: 399 },
-    { id: 3, name: "Jeans", price: 499 },
-  ];
-  res.json(products);
-});
 
 mongoose
   .connect(
