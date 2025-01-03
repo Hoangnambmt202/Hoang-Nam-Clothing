@@ -118,7 +118,7 @@ const deleteUser = (id) => {
           message: "Không tìm thầy người dùng",
         });
       }
-      // await User.findByIdAndDelete(id);
+      await User.findByIdAndDelete(id);
 
       resolve({
         status: "OK",
@@ -130,9 +130,52 @@ const deleteUser = (id) => {
     }
   });
 };
+const getAllUser = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      
+     
+      const allUser = await User.find();
+
+      resolve({
+        status: "OK",
+        message: "Danh sách người dùng",
+        data: allUser,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const getDetailUser = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const user = await User.findOne({ _id: id });
+     
+      if (user === null) {
+        resolve({
+          status: "OK",
+          message: "Không tìm thầy người dùng",
+        });
+      }
+    
+
+      resolve({
+        status: "OK",
+        message: `Thông tin chi tiết user: ${user.name} `,
+        data: user,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 module.exports = {
   createUser,
   loginUser,
   updateUser,
   deleteUser,
+  getAllUser,
+  getDetailUser,
 };

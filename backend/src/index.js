@@ -17,7 +17,7 @@ routes(app);
 
 mongoose
   .connect(
-    "mongodb+srv://nam23062002:nam23062002@cluster0.ywwqjfu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    process.env.MONGODB_URI,
   )
   .then(() => {
     console.log("connect success");
