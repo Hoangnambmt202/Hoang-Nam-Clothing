@@ -3,11 +3,13 @@ const bcrypt = require("bcrypt");
 const { generalAccessToken } = require("./JwtService");
 
 
+
 const createUser = (newUser) => {
     return new Promise(async (resolve, reject) => {
       const { name, email, phone, password, confirmPassword } = newUser
       try {
-        const checkUser = await User.findOne({
+        const 
+        user = await User.findOne({
           email: email
         })
         if(checkUser !== null) {
@@ -111,14 +113,14 @@ const deleteUser = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
       const checkUser = await User.findOne({ _id: id });
-      // console.log("checkUser:", checkUser);
+
       if (checkUser === null) {
         resolve({
           status: "OK",
           message: "Không tìm thầy người dùng",
         });
       }
-      // await User.findByIdAndDelete(id);
+      await User.findByIdAndDelete(id);
 
       resolve({
         status: "OK",
@@ -130,9 +132,51 @@ const deleteUser = (id) => {
     }
   });
 };
+const getAllUser = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+    
+      const user = await User.find();
+      resolve({
+        status: "OK",
+        message: "Danh sách người dùng",
+        data: user,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+const getDetailUser = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const 
+      user = await User.findOne({ _id: id });
+
+      if (
+        user === null) {
+        resolve({
+          status: "OK",
+          message: "Không tìm thầy người dùng",
+          data: user,
+        });
+      }
+      
+      resolve({
+        status: "OK",
+        message: "Chi tiết người dùng",
+        data: user,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 module.exports = {
   createUser,
   loginUser,
   updateUser,
   deleteUser,
+  getAllUser,
+  getDetailUser,
 };

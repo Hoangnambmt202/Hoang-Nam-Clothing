@@ -10,6 +10,4 @@ const generalAccessToken = async (payload) => {
 
 module.exports = {
   generalAccessToken,
-
-
 };
