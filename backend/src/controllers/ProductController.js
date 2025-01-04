@@ -55,7 +55,26 @@ const update = async (req, res) => {
     });
   }
 };
+const getDetail = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    if (!productId) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Không tìm thấy sản phẩm",
+      });
+    }
+    const response = await ProductService.getDetailProduct(productId);
+    return res.status(200).json(response);
+  } catch (e) {
+    res.status(500).json({
+      status: "failed",
+      message: e.message,
+    });
+  }
+};
 module.exports = {
     create,
     update,
+    getDetail,
 };

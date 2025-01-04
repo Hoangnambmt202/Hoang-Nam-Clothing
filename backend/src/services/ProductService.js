@@ -76,7 +76,31 @@ const updateProduct = (id, data) => {
     }
   });
 };
+
+const getDetailProduct = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const checkProduct = await Product.findOne({
+        _id: id,
+      });
+        if (checkProduct === null) {
+            resolve({
+            status: "OK",
+            message: "Không tìm thấy sản phẩm",
+            });
+        }
+        resolve({
+            status: "OK",
+            message: "Lấy thông tin sản phẩm thành công",
+            data: checkProduct,
+        });
+    } catch (e) {
+        reject(e);
+    }
+    });
+};
 module.exports = {
     createProduct,
     updateProduct,
+    getDetailProduct,
 };
