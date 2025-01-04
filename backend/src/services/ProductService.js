@@ -77,6 +77,22 @@ const updateProduct = (id, data) => {
   });
 };
 
+
+const getAllProduct = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+        const products = await Product.find();
+        resolve({
+            status: "OK",
+            message: "Lấy danh sách sản phẩm thành công",
+            data: products,
+        });
+        } catch (e) {
+        reject(e);
+        }
+    });
+    };
+
 const getDetailProduct = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -128,6 +144,7 @@ const deleteProduct = (id) => {
 module.exports = {
     createProduct,
     updateProduct,
+    getAllProduct,
     getDetailProduct,
     deleteProduct,
 };

@@ -55,6 +55,20 @@ const update = async (req, res) => {
     });
   }
 };
+
+const getAll = async (req, res) => {
+    try {
+        const response = await ProductService.getAllProduct();
+        return res.status(200).json(response);
+    }
+    catch (e) {
+        res.status(500).json({
+            status: "failed",
+            message: e.message,
+        });
+    }
+}
+
 const getDetail = async (req, res) => {
   try {
     const productId = req.params.id;
@@ -95,6 +109,7 @@ const deleteProduct = async (req, res) => {
 module.exports = {
     create,
     update,
+    getAll,
     getDetail,
     deleteProduct,
 };
