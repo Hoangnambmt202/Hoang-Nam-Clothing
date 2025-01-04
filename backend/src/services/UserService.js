@@ -126,7 +126,7 @@ const deleteUser = (id) => {
           message: "Không tìm thầy người dùng",
         });
       }
-      await User.findByIdAndDelete(id);
+
       await User.findByIdAndDelete(id);
 
       resolve({

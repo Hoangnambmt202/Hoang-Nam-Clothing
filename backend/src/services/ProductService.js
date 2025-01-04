@@ -99,8 +99,35 @@ const getDetailProduct = (id) => {
     }
     });
 };
+
+const deleteProduct = (id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+        const checkProduct = await Product
+            .findOne({
+            _id: id,
+            });
+        if (checkProduct === null) {
+            resolve({
+            status: "OK",
+            message: "Không tìm thấy sản phẩm",
+            });
+        }
+        await Product.findByIdAndDelete(id);
+        resolve({
+            status: "OK",
+            message: "Xóa sản phẩm thành công",
+        });
+        } catch (e) {
+        reject(e);
+        }
+    }
+    );
+}
+
 module.exports = {
     createProduct,
     updateProduct,
     getDetailProduct,
+    deleteProduct,
 };
