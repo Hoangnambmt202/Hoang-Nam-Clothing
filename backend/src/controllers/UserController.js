@@ -1,40 +1,40 @@
-const UserService = require('../services/UserService')
+const UserService = require("../services/UserService");
+const JwtService = require("../services/JwtService");
 
-const createUser = async (req,res)=> {
-    try {
-        const reg =
-          /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        const {name, email, phone, password, confirmPassword} = req.body;
-        const isEmail = reg.test(email);
-        if (!name || !email || !phone || !password || !confirmPassword) {
-          return res.status(200).json({
-            status: "err",
-            message: "the input is required",
-          });
-        } else if (!isEmail) {
-          return res.status(200).json({
-            status: "err",
-            message: "the input must be email",
-          });
-        } else if (password != confirmPassword) {
-          return res.status(200).json({
-            status: "err",
-            message: "password is not equal confirmed",
-          });
-        }
-        
-     
-       
-        
-        const response = await UserService.createUser(req.body);
-        return res.status(200).json(response)
+
+const createUser = async (req, res) => {
+  try {
+    const reg =
+      /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const { name, email, phone, password, confirmPassword } = req.body;
+   
+    const isEmail = reg.test(email);
+    if (!name || !email || !phone || !password || !confirmPassword) {
+      return res.status(200).json({
+        status: "err",
+        message: "the input is required",
+      });
+    } else if (!isEmail) {
+      return res.status(200).json({
+        status: "err",
+        message: "the input must be email",
+      });
+    } else if (password != confirmPassword) {
+      return res.status(200).json({
+        status: "err",
+        message: "password is not equal confirmed",
+      });
     }
-    catch (e) {
-        return res.status(404).json({
-            message : e
-        })
-    }
-}
+
+    const response = await UserService.createUser(req.body);
+ 
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
 const loginUser = async (req, res) => {
   try {
     const reg =
@@ -70,14 +70,13 @@ const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
     const data = req.body;
-    if(!userId) {
+    if (!userId) {
       return res.status(200).json({
         status: "err",
         message: "the user id is required",
       });
     }
     console.log(userId);
-    
 
     const response = await UserService.updateUser(userId, data);
     return res.status(200).json(response);
@@ -86,7 +85,7 @@ const updateUser = async (req, res) => {
       message: e,
     });
   }
-}
+};
 const deleteUser = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -109,7 +108,6 @@ const deleteUser = async (req, res) => {
 };
 const getAllUser = async (req, res) => {
   try {
-   
     const response = await UserService.getAllUser();
     return res.status(200).json(response);
   } catch (e) {
@@ -128,7 +126,26 @@ const getDetailUser = async (req, res) => {
       });
     }
 
-    const response = await UserService.getDetailUser(userId);
+  const response = await UserService.getDetailUser(userId);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+
+const refreshToken = async (req, res) => {
+  try {
+    const token = req.headers["authorization"].split(" ")[1];
+    if (!token) {
+      return res.status(200).json({
+        status: "err",
+        message: "The token is valid",
+      });
+    }
+
+    const response = await JwtService.refreshToken(token);
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({
@@ -137,10 +154,11 @@ const getDetailUser = async (req, res) => {
   }
 };
 module.exports = {
-    createUser,
-    loginUser,
-    updateUser,
-    deleteUser,
-    getAllUser,
-    getDetailUser,
-}
+  createUser,
+  loginUser,
+  updateUser,
+  deleteUser,
+  getAllUser,
+  getDetailUser,
+  refreshToken,
+};

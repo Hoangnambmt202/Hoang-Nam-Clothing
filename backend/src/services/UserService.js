@@ -1,15 +1,14 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
-const { generalAccessToken } = require("./JwtService");
+const { generalAccessToken , generateRefreshToken} = require("./JwtService");
 
 
 
 const createUser = (newUser) => {
     return new Promise(async (resolve, reject) => {
-      const { name, email, phone, password, confirmPassword } = newUser
+      const { name, email, phone, password,confirmPassword } = newUser
       try {
-        const 
-        user = await User.findOne({
+        const checkUser = await User.findOne({
           email: email
         })
         if(checkUser !== null) {
@@ -24,7 +23,8 @@ const createUser = (newUser) => {
           name,
           email, 
           phone,
-          password: hash, 
+          password: hash,
+          confirmPassword: hash, 
         })
         if(createdUser) {
           resolve({
@@ -69,13 +69,19 @@ const loginUser = (userLogin) => {
          isAdmin : checkUser.isAdmin,
         }
       );
+      const refresh_token = await generateRefreshToken(
+        {
+          _id: checkUser._id,
+          isAdmin : checkUser.isAdmin,
+        }
+      );
    
 
       resolve({
         status: "OK",
         message: "Đăng nhập thành công",
         access_token,
-
+        refresh_token,
 
       });
       
@@ -172,6 +178,7 @@ const getDetailUser = (id) => {
     }
   });
 };
+
 module.exports = {
   createUser,
   loginUser,
@@ -179,4 +186,5 @@ module.exports = {
   deleteUser,
   getAllUser,
   getDetailUser,
+ 
 };

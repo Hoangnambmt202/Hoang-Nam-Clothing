@@ -16,9 +16,7 @@ app.use(bodyParser.json());
 routes(app);
 
 mongoose
-  .connect(
-    process.env.MONGODB_URI
-  )
+  .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("connect success");
   })
