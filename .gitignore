@@ -1,77 +1,47 @@
+# Node.js modules
+node_modules/
+
+# Vite build output
+/dist/
+/.vite/
+
 # Logs
-logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
 
-# Diagnostic reports
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+# Dependency directories
+.pnp
+.pnp.js
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage
-coverage
-*.lcov
-.nyc_output
-
-# Node modules
-node_modules/
-
-# dotenv environment files
+# Environment variables
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+.env.*.local
+*.env
 
-# Vite build output
-dist/  # Specific to Vite React
+# IDE & Editor config files
+.vscode/
+.idea/
 
-# Optional cache directories
-.npm
-.eslintcache
-.stylelintcache
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Optional REPL history
-.node_repl_history
+# Package lock and yarn lock files (optional, but usually you should track these)
+package-lock.json
+yarn.lock
 
-# Output of 'npm pack'
-*.tgz
+# Tests folder if you are not using it in Git
+test/
+coverage/
 
-# Yarn Integrity file
-.yarn-integrity
+# Jest snapshot folder
+.snap/
 
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
+# Build directories
+/build/
 
-# Serverless directories
-.serverless/
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
+# Miscellaneous
+*.log
+*.bak
+*.swp
