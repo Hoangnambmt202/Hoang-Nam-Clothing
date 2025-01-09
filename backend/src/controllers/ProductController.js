@@ -58,8 +58,15 @@ const update = async (req, res) => {
 
 const getAll = async (req, res) => {
     try {
-      const {limit, page } = req.query;
-      const response = await ProductService.getAllProduct(Number(limit), Number(page - 1));
+      const { limit, page, sortField = "_id", sortOrder = "asc" } = req.query;
+      const sortOrderValue = sortOrder === "desc" ? -1 : 1;
+      const response = await ProductService.getAllProduct(
+        Number(limit),
+        Number(page),
+        sortField,
+        sortOrderValue
+      );
+
       return res.status(200).json(response);
     }
     catch (e) {
