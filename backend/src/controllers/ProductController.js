@@ -58,8 +58,9 @@ const update = async (req, res) => {
 
 const getAll = async (req, res) => {
     try {
-        const response = await ProductService.getAllProduct();
-        return res.status(200).json(response);
+      const {limit, page } = req.query;
+      const response = await ProductService.getAllProduct(Number(limit), Number(page - 1));
+      return res.status(200).json(response);
     }
     catch (e) {
         res.status(500).json({

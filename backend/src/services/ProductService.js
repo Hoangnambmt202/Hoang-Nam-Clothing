@@ -78,15 +78,20 @@ const updateProduct = (id, data) => {
 };
 
 
-const getAllProduct = () => {
+const getAllProduct = (limit, page = 0) => {
     return new Promise(async (resolve, reject) => {
         try {
-        const products = await Product.find();
-        resolve({
-            status: "OK",
-            message: "Lấy danh sách sản phẩm thành công",
-            data: products,
-        });
+          
+          const totalProduct = await Product.countDocuments();  // lấy tổng số lượng sản phẩm
+          const products = await Product.find().limit(limit).skip(page * limit); // lấy sản phẩm có phân trang bằng limit và next 
+          resolve({
+              status: "OK",
+              message: "Lấy danh sách sản phẩm thành công",
+              totalProduct : totalProduct,
+              pageCurrent : Number(page +1),  
+              totalPage : Math.ceil(totalProduct / limit),
+              data: products,
+          });
         } catch (e) {
         reject(e);
         }
