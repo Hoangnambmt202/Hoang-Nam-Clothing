@@ -78,29 +78,57 @@ const updateProduct = (id, data) => {
 };
 
 
+// const getAllProduct = (limit, page, sortField, sortOrder) => {
+//   return new Promise(async (resolve, reject) => {
+//     try {
+//       const sortOption = { [sortField]: sortOrder }; // Tạo object sắp xếp, ví dụ: {_id: -1}
+//       const totalProduct = await Product.countDocuments(); // lấy tổng số lượng sản phẩm
+//       const products = await Product.find()
+//         .sort(sortOption) // lấy sản phẩm có phân trang bằng limit và next
+//         .limit(limit)
+//         .skip(Number(page - 1) * limit)
+//       console.log("Skip:", (page - 1) * limit);
+//       resolve({
+//         status: "OK",
+//         message: "Lấy danh sách sản phẩm thành công",
+//         totalProduct: totalProduct,
+//         pageCurrent: Number(page),
+//         totalPage: Math.ceil(totalProduct / limit),
+//         data: products,
+//       });
+//     } catch (e) {
+//       reject(e);
+//     }
+//   });
+// };
 const getAllProduct = (limit, page, sortField, sortOrder) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const sortOption = { [sortField]: sortOrder }; // Tạo object sắp xếp, ví dụ: {_id: -1}
-      const totalProduct = await Product.countDocuments(); // lấy tổng số lượng sản phẩm
+      // Xử lý các giá trị mặc định
+      const sortFieldValue = sortField || "_id"; // Mặc định sắp xếp theo `_id` nếu không có sortField
+      const sortOrdeValue= sortOrder === "asc" ? 1 : -1; // Sắp xếp tăng dần (1) hoặc giảm dần (-1)
+
+      const totalProduct = await Product.countDocuments(); // Lấy tổng số lượng sản phẩm
       const products = await Product.find()
-        .sort(sortOption) // lấy sản phẩm có phân trang bằng limit và next
+        .sort({ [sortFieldValue]: sortOrdeValue }) // Sắp xếp theo trường được chỉ định
         .limit(limit)
-        .skip(Number(page - 1) * limit)
-      console.log("Skip:", (page - 1) * limit);
+        .skip((page - 1) * limit);
+
       resolve({
         status: "OK",
         message: "Lấy danh sách sản phẩm thành công",
         totalProduct: totalProduct,
         pageCurrent: Number(page),
         totalPage: Math.ceil(totalProduct / limit),
-        data: products,
+        data: products, 
       });
     } catch (e) {
       reject(e);
     }
   });
 };
+
+
 
 const getDetailProduct = (id) => {
   return new Promise(async (resolve, reject) => {
