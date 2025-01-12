@@ -78,39 +78,22 @@ const updateProduct = (id, data) => {
 };
 
 
-// const getAllProduct = (limit, page, sortField, sortOrder) => {
-//   return new Promise(async (resolve, reject) => {
-//     try {
-//       const sortOption = { [sortField]: sortOrder }; // Tạo object sắp xếp, ví dụ: {_id: -1}
-//       const totalProduct = await Product.countDocuments(); // lấy tổng số lượng sản phẩm
-//       const products = await Product.find()
-//         .sort(sortOption) // lấy sản phẩm có phân trang bằng limit và next
-//         .limit(limit)
-//         .skip(Number(page - 1) * limit)
-//       console.log("Skip:", (page - 1) * limit);
-//       resolve({
-//         status: "OK",
-//         message: "Lấy danh sách sản phẩm thành công",
-//         totalProduct: totalProduct,
-//         pageCurrent: Number(page),
-//         totalPage: Math.ceil(totalProduct / limit),
-//         data: products,
-//       });
-//     } catch (e) {
-//       reject(e);
-//     }
-//   });
-// };
-const getAllProduct = (limit, page, sortField, sortOrder) => {
+const getAllProduct = (limit, page, sortBy) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // Xử lý các giá trị mặc định
-      const sortFieldValue = sortField || "_id"; // Mặc định sắp xếp theo `_id` nếu không có sortField
-      const sortOrdeValue= sortOrder === "asc" ? 1 : -1; // Sắp xếp tăng dần (1) hoặc giảm dần (-1)
+      // Xử lý giá trị mặc định cho các tham số
+      const sortOptions = {
+        "newest": { createdAt: -1 }, // Hàng mới nhất (giảm dần theo ngày tạo)
+        "price-asc": { price: 1 },  // Giá tăng dần
+        "price-desc": { price: -1 } // Giá giảm dần
+      };
 
-      const totalProduct = await Product.countDocuments(); // Lấy tổng số lượng sản phẩm
+      // Xử lý trường hợp không có tham số sortBy hoặc giá trị không hợp lệ
+      const sortCriteria = sortOptions[sortBy] || { createdAt: -1 };
+
+      const totalProduct = await Product.countDocuments(); // Lấy tổng số sản phẩm
       const products = await Product.find()
-        .sort({ [sortFieldValue]: sortOrdeValue }) // Sắp xếp theo trường được chỉ định
+        .sort(sortCriteria) // Sắp xếp theo tiêu chí
         .limit(limit)
         .skip((page - 1) * limit);
 
@@ -120,13 +103,14 @@ const getAllProduct = (limit, page, sortField, sortOrder) => {
         totalProduct: totalProduct,
         pageCurrent: Number(page),
         totalPage: Math.ceil(totalProduct / limit),
-        data: products, 
+        data: products,
       });
     } catch (e) {
       reject(e);
     }
   });
 };
+
 
 
 
@@ -147,6 +131,8 @@ const getDetailProduct = (id) => {
             message: "Lấy thông tin sản phẩm thành công",
             data: checkProduct,
         });
+        console.log("Lấy sản phẩm thành công :", checkProduct);
+
     } catch (e) {
         reject(e);
     }

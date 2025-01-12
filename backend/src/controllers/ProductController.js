@@ -58,12 +58,11 @@ const update = async (req, res) => {
 
 const getAll = async (req, res) => {
     try {
-      const { limit, page, sortField , sortOrder } = req.query;
+      const { limit, page, sortBy } = req.query;
       const response = await ProductService.getAllProduct(
         Number(limit),
         Number(page),
-        sortField,
-        sortOrder
+        sortBy
       );
 
       return res.status(200).json(response);
@@ -75,6 +74,8 @@ const getAll = async (req, res) => {
         });
     }
 }
+
+  
 
 const getDetail = async (req, res) => {
   try {
