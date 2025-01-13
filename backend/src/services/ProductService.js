@@ -81,15 +81,17 @@ const updateProduct = (id, data) => {
 const getAllProduct = (limit, page, sortBy, filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      //filter 
-      const label = filter[0];
-      const allObjectFilter = await Product.find({[label]: {'$regex': filter[1]}}).limit(limit).skip((page - 1) * limit);
-      resolve({
-        status: "OKE",
-        message: "success",
-        data: allObjectFilter,
-      })
-      // Xử lý giá trị mặc định cho sắp xếp
+
+      if(filter) {
+        const label = filter[0];
+        const allObjectFilter = await Product.find({[label]: {'$regex': filter[1]}}).limit(limit).skip((page - 1) * limit);
+        resolve({
+          status: "OKE",
+          message: "success",
+          data: allObjectFilter,
+        })
+
+      }
       const sortOptions = {
         "newest": { createdAt: -1 },
         "price-asc": { price: 1 },
