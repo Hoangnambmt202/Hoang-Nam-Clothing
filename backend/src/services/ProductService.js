@@ -78,22 +78,28 @@ const updateProduct = (id, data) => {
 };
 
 
-const getAllProduct = (limit, page, sortBy) => {
+const getAllProduct = (limit, page, sortBy, filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // Xử lý giá trị mặc định cho các tham số
+      //filter 
+      const label = filter[0];
+      const allObjectFilter = await Product.find({[label]: {'$regex': filter[1]}}).limit(limit).skip((page - 1) * limit);
+      resolve({
+        status: "OKE",
+        message: "success",
+        data: allObjectFilter,
+      })
+      // Xử lý giá trị mặc định cho sắp xếp
       const sortOptions = {
-        "newest": { createdAt: -1 }, // Hàng mới nhất (giảm dần theo ngày tạo)
-        "price-asc": { price: 1 },  // Giá tăng dần
-        "price-desc": { price: -1 } // Giá giảm dần
+        "newest": { createdAt: -1 },
+        "price-asc": { price: 1 },
+        "price-desc": { price: -1 },
       };
-
-      // Xử lý trường hợp không có tham số sortBy hoặc giá trị không hợp lệ
       const sortCriteria = sortOptions[sortBy] || { createdAt: -1 };
 
-      const totalProduct = await Product.countDocuments(); // Lấy tổng số sản phẩm
+      const totalProduct = await Product.countDocuments();
       const products = await Product.find()
-        .sort(sortCriteria) // Sắp xếp theo tiêu chí
+        .sort(sortCriteria)
         .limit(limit)
         .skip((page - 1) * limit);
 

@@ -57,23 +57,24 @@ const update = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-    try {
-      const { limit, page, sortBy } = req.query;
-      const response = await ProductService.getAllProduct(
-        Number(limit),
-        Number(page),
-        sortBy
-      );
+  try {
+    const { limit, page, sortBy,filter } = req.query; // Lấy các tham số còn lại làm bộ lọc
+    const response = await ProductService.getAllProduct(
+      Number(limit) || 10,
+      Number(page) || 1,
+      sortBy,
+      filter,
+    );
 
-      return res.status(200).json(response);
-    }
-    catch (e) {
-        res.status(500).json({
-            status: "failed",
-            message: e.message,
-        });
-    }
-}
+    return res.status(200).json(response);
+  } catch (e) {
+    res.status(500).json({
+      status: "failed",
+      message: e.message,
+    });
+  }
+};
+
 
   
 
