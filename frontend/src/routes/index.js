@@ -9,6 +9,8 @@ import NotFoundPage from "../pages/NotFoundPage/NotFoundPage";
 import ProductDetailPage from "../pages/ProductDetailPage/ProductDetailPage";
 import ProductPage from "../pages/ProductPage/ProductsPage";
 import UserPage from "../pages/UserPage/UserPage";
+import SignInPage from "../pages/SignInPage/SignInPage";
+import { SignUpPage } from "../pages/SignUpPage/SignUpPage";
 
 
 const routes = [
@@ -62,6 +64,16 @@ const routes = [
     page: ProductDetailPage,
     isShowHeader:true,
   },
+  {
+    path: "sign-in",
+    page: SignInPage,
+    isShowHeader: false,
+  },
+  {
+    path: "sign-up",
+    page: SignUpPage,
+    isShowHeader: false,
+  }
  
 ];
 export default routes;

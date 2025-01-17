@@ -1,6 +1,7 @@
 import Footer from "../FooterComponent/FooterComponent";
 import Header from "../HeaderComponent/HeaderComponent";
-const DefaultComponent = ({ children }) => {
+// eslint-disable-next-line react/prop-types
+const DefaultComponent = ( { children } ) => {
   return (
     <div>
       <Header />

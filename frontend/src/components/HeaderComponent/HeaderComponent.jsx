@@ -23,10 +23,10 @@ const Header = () => {
           alt=""
         />
       </div>
-      <div className="container relative sticky top-0 flex justify-between px-4 py-4 mx-auto lg:flex md:flex md:justify-around lg:items-center lg:justify-around">
+      <div className="container relative sticky top-0 flex justify-between px-4 py-4 mx-auto lg:flex md:flex md:justify-around lg:items-center lg:justify-between">
         {/* Logo */}
         <button
-          className="flex items-center gap-4 text-sm text-gray-600 hover:text-blue-500"
+          className="flex items-center gap-4 text-sm text-gray-600 hover:text-blue-500 pl-28"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           <svg
@@ -48,7 +48,7 @@ const Header = () => {
           <span className="hidden lg:inline-block md:inline-block">MENU</span>
         </button>
         <Link to="/">
-          <div className="text-3xl font-bold text-blue-500">HOÀNG NAM</div>
+          <div className="text-3xl font-Dosis font-bold text-blue-500">HOÀNG NAM</div>
         </Link>
 
         {isMenuOpen && (
@@ -144,7 +144,7 @@ const Header = () => {
             <div className="flex items-center px-4 search">
               <input
                 type="text"
-                className="px-4 py-3 border-b focus:outline-none hover:border-b-gray-600"
+                className="px-4 py-2 border-b focus:outline-none hover:border-b-gray-600"
                 placeholder="Tìm kiếm"
               />
               <FontAwesomeIcon
@@ -175,6 +175,12 @@ const Header = () => {
                   <li>
                     <Link className="block px-4 py-2 hover:text-blue-500">
                       Đơn Mua
+                    </Link>
+                  </li>
+               
+                  <li>
+                    <Link to="/sign-in"  className="block px-4 py-2 hover:text-blue-500">
+                      Đăng Nhập
                     </Link>
                   </li>
                   <li>
