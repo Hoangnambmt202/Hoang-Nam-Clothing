@@ -6,10 +6,10 @@ const createUser = async (req, res) => {
   try {
     const reg =
       /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const { name, email, phone, password, confirmPassword } = req.body;
+    const {  email, phone, password, confirmPassword } = req.body;
    
     const isEmail = reg.test(email);
-    if (!name || !email || !phone || !password || !confirmPassword) {
+    if (!email || !phone || !password || !confirmPassword) {
       return res.status(200).json({
         status: "err",
         message: "the input is required",
