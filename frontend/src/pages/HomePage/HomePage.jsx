@@ -56,7 +56,7 @@ const HomePage = () => {
 
 
   return (
-    <div className="container px-4 mx-auto">
+    <main className="container px-4 mx-auto">
       <div className="flex items-center justify-center mb-3 bg-gray-100">
         <CarouselComponent />
       </div>
@@ -120,7 +120,7 @@ const HomePage = () => {
         </div>
       </section>
       <NewsletterComponent/> 
-    </div>
+    </main>
   );
 };
 

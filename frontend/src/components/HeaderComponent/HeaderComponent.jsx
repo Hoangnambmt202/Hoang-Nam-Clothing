@@ -184,12 +184,12 @@ const Header = () => {
                 <ul className="flex flex-col items-center justify-center bg-white">
                 
                   <li>
-                    <Link to="/user/profile"  className="block px-4 py-2 hover:text-blue-500">
+                    <Link to="/user/account/profile"  className="block px-4 py-2 hover:text-blue-500">
                       Tài Khoản
                     </Link>
                   </li>
                   <li>
-                    <Link to="/my-orders" className="block px-4 py-2 hover:text-blue-500">
+                    <Link to="/orders" className="block px-4 py-2 hover:text-blue-500">
                       Đơn Mua
                     </Link>
                   </li>

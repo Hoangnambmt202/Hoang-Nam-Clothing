@@ -1,19 +1,27 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import routes from "./routes";
-import { Fragment } from "react";
-import "./App.css";
-import DefaultComponent from "./components/DefaultComponent/DefaultComponent";
 
+import "./App.css";
 
 function App() {
 
   return (
     <>
       <Router>
-        <Routes>
-          {routes.map((route, index) => {
+      <Routes>
+        {routes.map((route, index) => {
+          if (route.children) {
+            return (
+              <Route key={index} path={route.path} element={<route.layout />}>
+                {route.children.map((child, idx) => (
+                  <Route key={idx} path={child.path} element={<child.page />} />
+                ))}
+              </Route>
+            );
+          } else {
             const Page = route.page;
-            const Layout = route.isShowHeader ? DefaultComponent : Fragment;
+            const Layout = route.layout || (({ children }) => <>{children}</>);
+
             return (
               <Route
                 key={index}
@@ -25,9 +33,10 @@ function App() {
                 }
               />
             );
-          })}
-        </Routes>
-      </Router>
+          }
+        })}
+      </Routes>
+    </Router>
     </>
   );
 }
