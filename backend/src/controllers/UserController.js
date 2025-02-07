@@ -37,19 +37,18 @@ const createUser = async (req, res) => {
 };
 const loginUser = async (req, res) => {
   try {
-    const reg =
-      /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const { email, password } = req.body;
-    const isEmail = reg.test(email);
-    if ( !email || !password) {
+    
+    const { phone, password } = req.body;
+    const isPhone = req.length = 10 ;
+    if ( !phone || !password) {
       return res.status(200).json({
         status: "err",
-        message: "the input is required",
+        message: "Vui lòng điền đầy đủ thông tin đăng nhập",
       });
-    } else if (!isEmail) {
+    } else if (!isPhone) {
       return res.status(200).json({
         status: "err",
-        message: "the input must be email",
+        message: "Số điện thoại không hợp lệ",
       });
     } ;
     

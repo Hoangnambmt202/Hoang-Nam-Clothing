@@ -73,7 +73,13 @@ const routes = [
     path: "sign-up",
     page: SignUpPage,
     isShowHeader: false,
+  },
+  {
+    path: "/user/profile",
+    page: UserPage,
+    isShowHeader: true,
   }
+  
  
 ];
 export default routes;

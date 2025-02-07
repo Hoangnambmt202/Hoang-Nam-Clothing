@@ -7,12 +7,33 @@ import {
   faChevronRight,
   faHouse
 } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Cookies from "js-cookie";
+
+import avatar from "../../assets/imgs/pexels-hikaique-307847.jpg"
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
 
+  useEffect(() => {
+    const storedUser = Cookies.get("user"); // Lấy user từ cookies
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Lỗi khi phân tích JSON:", error);
+        Cookies.remove("user"); // Xóa nếu lỗi
+      }
+    }
+  }, []);
+  
+
+  const handleLogout = () => {
+    Cookies.remove("user");  
+    setUser(null);
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md">
@@ -153,31 +174,45 @@ const Header = () => {
               />
             </div>
           </li>
-          <li className="relative">
-            <Link
-              to="/user"
+          <li className="relative flex">
+            {
+              user ? (<>
+              {/* <button onClick={handleLogout} >Đăng xuất</button> */}
+              <button  className="relative px-4 group after:w-full after:h-[30px] after:absolute after:top-[20px] after:left-0 after:bg-transparent" >
+                <img src={avatar} className="rounded-full w-7 h-7" alt={user.name} />
+                <div className="absolute w shadow-xl rounded top-[40px] right-[-20px] hidden w-44  group-hover:block">
+                <ul className="flex flex-col items-center justify-center bg-white">
+                
+                  <li>
+                    <Link to="/user/profile"  className="block px-4 py-2 hover:text-blue-500">
+                      Tài Khoản
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/my-orders" className="block px-4 py-2 hover:text-blue-500">
+                      Đơn Mua
+                    </Link>
+                  </li>
+                  <li>
+                    <button onClick={handleLogout} className="block px-4 py-2 hover:text-blue-500">
+                      Đăng Xuất
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              </button>
+              </>) : (<>
+              <button             
               className="relative group after:w-full after:h-[30px] after:absolute after:top-[20px] after:left-0 after:bg-transparent"
             >
+              
               <FontAwesomeIcon
                 icon={faUser}
                 className="px-2 text-lg text-gray-500 "
               />
               <div className="absolute w shadow-xl rounded top-[40px] right-[-20px] hidden w-44  group-hover:block">
                 <ul className="flex flex-col items-center justify-center bg-white">
-                  <li>
-                    <Link
-                      to="/user"
-                      className="block px-4 py-2 hover:text-blue-500"
-                    >
-                      Tài Khoản
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="block px-4 py-2 hover:text-blue-500">
-                      Đơn Mua
-                    </Link>
-                  </li>
-               
+                
                   <li>
                     <Link to="/sign-in"  className="block px-4 py-2 hover:text-blue-500">
                       Đăng Nhập
@@ -185,18 +220,21 @@ const Header = () => {
                   </li>
                   <li>
                     <Link className="block px-4 py-2 hover:text-blue-500">
-                      Đăng Xuất
+                      Đăng Ký
                     </Link>
                   </li>
                 </ul>
               </div>
-            </Link>
+            </button>
+                </>)
+            }
+            
           </li>
           <li>
             <Link to="/cart">
               <FontAwesomeIcon
                 icon={faBagShopping}
-                className="px-2 text-lg text-gray-500"
+                className="px-4 text-lg text-gray-500"
               />
             </Link>
           </li>

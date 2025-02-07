@@ -41,15 +41,15 @@ const createUser = (newUser) => {
 }
 const loginUser = (userLogin) => {
   return new Promise(async (resolve, reject) => {
-    const {email, password } = userLogin;
+    const {phone, password } = userLogin;
     try {
       const checkUser = await User.findOne({
-        email: email,
+        phone: phone,
       });
       if (checkUser === null) {
         resolve({
-          status: "ÔK",
-          message: "User not found",
+          status: "err",
+          message: "Không tìm thấy người dùng",
         });
       }
       const checkPassword = bcrypt.compareSync(password, checkUser.password);
@@ -57,9 +57,9 @@ const loginUser = (userLogin) => {
       
       if (!checkPassword) {
         resolve({
-          status: "OK",
+          status: "err",
           message: "Mật khẩu không đúng. Vui lòng thử lại!",
-          data: checkUser,
+        
         });
       }
       
@@ -80,6 +80,7 @@ const loginUser = (userLogin) => {
       resolve({
         status: "OK",
         message: "Đăng nhập thành công",
+        data: checkUser,
         access_token,
         refresh_token,
 
