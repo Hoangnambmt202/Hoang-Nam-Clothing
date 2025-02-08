@@ -10,29 +10,28 @@ import {
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
-
+import { useSelector, useDispatch } from "react-redux";
+import { logout,setUser } from "../../redux/slides/userSlice";
 import avatar from "../../assets/imgs/pexels-hikaique-307847.jpg"
+
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
-
+ 
+  const user = useSelector((state) => state.user.user);
+  const dispatch = useDispatch();
   useEffect(() => {
-    const storedUser = Cookies.get("user"); // Lấy user từ cookies
+    const storedUser = Cookies.get("user");
     if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Lỗi khi phân tích JSON:", error);
-        Cookies.remove("user"); // Xóa nếu lỗi
-      }
+      dispatch(setUser(JSON.parse(storedUser)));
     }
-  }, []);
-  
+  }, [dispatch]);
 
   const handleLogout = () => {
     Cookies.remove("user");  
-    setUser(null);
+      dispatch(logout());
+     
+    
   };
 
   return (

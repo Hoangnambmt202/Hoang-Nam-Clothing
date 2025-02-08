@@ -35,7 +35,7 @@ function UserLayout() {
     
   <>
   <Header/>
-  <div className="container flex px-4 mx-auto my-4">
+  <div className="container flex px-4 mx-auto py-4">
       <aside className="px-4 basis-3/12 h-auto bg-neutral-100 py-4">
         <div className="flex flex-col items-center justify-center header-account">
           <img
@@ -187,7 +187,7 @@ function UserLayout() {
       </aside>
 
       {/* Nội dung trang */}
-      <div className="flex-1 px-4 bg-white shadow-xl basis-9/12 h-96">
+      <div className="flex-1 flex flex-col px-4 bg-white shadow-xl basis-9/12 min-h-screen">
         <Outlet/>
       </div>
     </div>

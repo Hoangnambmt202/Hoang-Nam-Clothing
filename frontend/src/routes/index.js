@@ -76,6 +76,7 @@ const routes = [
     
     ],
   },
+
   {
     path: "/product-detail",
     page: ProductDetailPage,
