@@ -14,7 +14,7 @@ const createUser = (newUser) => {
         if(checkUser !== null) {
           resolve({
             status: "ÔK",
-            message : "the email is already"
+            message : "Email đã tồn tại"
           })
         }
 

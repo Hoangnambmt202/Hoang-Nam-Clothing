@@ -2,7 +2,11 @@ import {  useEffect } from "react";
 import Cookies from "js-cookie";
 import {  } from "react-router-dom"; // Để điều hướng
 import { useSelector, useDispatch } from "react-redux";
+
 import { setUser } from "../../redux/slides/userSlice";
+import avatar from "../../assets/imgs/avatar default.jpg"
+
+
 function ProfilePage() {
   const user = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
@@ -66,9 +70,10 @@ function ProfilePage() {
       </>
     )
   }
-
+  
+ 
   return (
-    
+
     <>
       <div className="py-4">
         <h2 className="text-xl font-thin text-gray-700">Hồ sơ của tôi</h2>
@@ -80,36 +85,44 @@ function ProfilePage() {
             <table className="w-full">
               <tbody>
                 <tr>
-                  <td className="w-[30%] text-right">Tên Đăng nhập</td>
-                  <td className="px-4">{user?.name || "Chưa có thông tin"}</td>
+                  <td className="w-[30%] text-right">Tên đăng nhập</td>
+                  <td className="px-4">{user?.name || "Chưa cập nhật "}</td>
                 </tr>
                 <tr>
                   <td className="w-[30%] text-right">Tên</td>
                   <td className="px-4">
-                    <input type="text" value={user?.name || ""} readOnly />
+                    <input type="text" value={user?.name || "Chưa cập nhật " } />
                   </td>
                 </tr>
                 <tr>
-                  <td className="w-[30%] text-right">Số đt</td>
+                  <td className="w-[30%] text-right">Số điện thoại</td>
                   <td className="px-4">
-                    <input type="text" value={user?.phone || ""} readOnly />
+                    <input type="text" value={user?.phone || "Chưa cập nhật "} />
                   </td>
                 </tr>
                 <tr>
-                  <td className="w-[30%] text-right">Email</td>
+                  <td className="w-[30%] text-right"> Email</td>
                   <td className="px-4">
-                    {user?.email || "Chưa có email"} <button className="underline">Thay đổi</button>
+                    {user?.email || "Chưa cập nhật " } <button className="underline">Thay đổi</button>
                   </td>
                 </tr>
                 <tr>
                   <td className="w-[30%] text-right">Địa chỉ</td>
-                  <td className="px-4">Nam</td>
+                  <td className="px-4">72943 Langworth Burgs</td>
                 </tr>
               </tbody>
             </table>
           </form>
         </div>
-        <div className="flex-1"></div>
+        <div className="flex-1">
+          <div className="flex justify-center">
+            <img src={avatar} alt="avatar" className="w-8/12" />
+          </div>
+          <div>
+         
+          </div>
+
+        </div>
       </div>
     </>
   );

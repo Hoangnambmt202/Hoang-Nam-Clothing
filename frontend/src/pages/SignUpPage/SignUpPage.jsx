@@ -1,116 +1,154 @@
-import { useState } from "react"
-import InputFormComponent from "../../components/InputFormComponent/InputFormComponent"
-import { Link } from "react-router-dom";
-import * as UserService from "../../services/UserService";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
+import UserService from "../../services/UserService";
 import LoadingComponent from "../../components/LoadingComponent/LoadingComponent";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTriangleExclamation } from"@fortawesome/free-solid-svg-icons";;
+import InputFormComponent from "../../components/InputFormComponent/InputFormComponent";
+import ToastMessageComponent from "../../components/ToastMessageComponent/ToastMessageComponent";
 
 export const SignUpPage = () => {
-
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState(''); // Thêm trạng thái lưu thông báo
-  const [messageType, setMessageType] = useState(''); // Lưu loại thông báo ('success' hoặc 'error')
+  const [errors, setErrors] = useState({}); // State để lưu lỗi của từng input
+  const [toast, setToast] = useState({ show: false, message: "", color: "" });
 
-  const handleOnChangeEmail = (value) => {
-    setEmail(value);
-  }
-  const handleOnChangePhone = (value) => {
-    setPhone(value);
-  }
-  const handleOnChangePassword = (value) => {
-    setPassword(value);
-   
-  }
-  const handleOnChangeConfirmPassword = (value) => {
-    setConfirmPassword(value);
-   
-  }
+  const navigate = useNavigate();
+
   const mutation = useMutation({
     mutationFn: UserService.registerUser,
     onSuccess: (data) => {
-      setMessage(data.message || 'Đăng ký thành công!');
-      setMessageType('success'); // Thông báo thành công
+      if (data.status === "err") {
+        setToast({ show: true, message: data.message, color: "red" });
+      } else {
+        setToast({ show: true, message: "Đăng ký thành công!", color: "green" });
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+      }
     },
     onError: (error) => {
-      setMessage(error.response?.data?.message || 'Đã xảy ra lỗi!');
-      setMessageType('error'); // Thông báo lỗi
+      setToast({ show: true, message: "Đã xảy ra lỗi", color: "red" });
+      console.log(error);
     },
   });
-  
-  const handleSignUp = () => {
-    if (!email || !phone || !password || !confirmPassword) {
-      setMessage('Vui lòng nhập đầy đủ thông tin.');
-      setMessageType('error');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setMessage('Mật khẩu và xác nhận mật khẩu không khớp.');
-      setMessageType('error');
-      return;
-    }
-    console.log("Calling mutate...");
-    console.log("Mutation object:", mutation);
 
-    mutation.mutate({ email, phone, password, confirmPassword }, {
-      onSuccess: (data) => {
-        if (data.status === "err") {
-          setMessage(data.message); 
-          setMessageType('error');
-        } else {
-          setMessage(data.message || 'Đăng ký thành công!');  
-          setMessageType('success');
-        }
-      },
-      onError: (error) => {
-        setMessage(error.response?.data?.message || 'Đã xảy ra lỗi!');
-        setMessageType('error');
-      },
-    });
+  const validateField = (name, value) => {
+    let error = "";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    switch (name) {
+      case "email":
+        if (!value) error = "Vui lòng nhập email";
+        else if (!emailRegex.test(value)) error = "Email không hợp lệ";
+        break;
+
+      case "phone":
+        if (!value) error = "Vui lòng nhập số điện thoại";
+        else if (value.length < 10) error = "Số điện thoại quá ngắn";
+        break;
+
+      case "password":
+        if (!value) error = "Vui lòng nhập mật khẩu";
+        else if (value.length < 6) error = "Mật khẩu phải có ít nhất 6 ký tự";
+        break;
+
+      case "confirmPassword":
+        if (!value) error = "Vui lòng nhập lại mật khẩu";
+        else if (value !== password) error = "Mật khẩu không khớp";
+        break;
+
+      default:
+        break;
+    }
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: error,
+    }));
   };
-  
-  
-  
+
+  const handleSignUp = () => {
+    if (Object.values(errors).every((err) => err === "")) {
+      mutation.mutate({ email, phone, password, confirmPassword });
+    }
+  };
+
   return (
     <div className="container min-h-screen px-4 mx-auto bg-white">
+      {toast.show && (
+        <ToastMessageComponent 
+          message={toast.message} 
+          color={toast.color} 
+          onClose={() => setToast({ ...toast, show: false })} 
+        />
+      )}
 
-      <div className="bg-red-500 w-80 h-20 rounded-sm flex justify-center items-center" >
-      <FontAwesomeIcon icon={faTriangleExclamation} className="mr-4" />
-      <span className="text-white" > {message}</span>
-      </div>
-      {mutation.isPending && <LoadingComponent />} 
+      {mutation.isPending && <LoadingComponent />}
+      
       <div className="grid grid-cols-4 py-8">
         <div className="flex flex-col justify-center items-center col-start-2 col-span-2 px-4">
           <h2 className="uppercase font-Dosis text-3xl mb-4"> Đăng Ký Thành Viên </h2>
           <p className="italic font-thin mb-4">
-            Đăng ký để tích điểm và hưởng ưu đãi thành viên khi mua hàng. Nhập số điện thoại để tiếp tục đăng nhập hoặc đăng ký thành viên.
+            Đăng ký để tích điểm và hưởng ưu đãi thành viên khi mua hàng.
           </p>
+
           <div className="form mb-4">
-            <InputFormComponent placeholder="Vui lòng nhập email của bạn" value={email} onChange={handleOnChangeEmail} />
-            <InputFormComponent placeholder="Vui lòng nhập số điện thoại của bạn" value={phone} onChange={handleOnChangePhone} />
-            <InputFormComponent placeholder="Vui lòng nhập mật khẩu của bạn" value={password} onChange={handleOnChangePassword} />
-            <InputFormComponent placeholder="Vui lòng nhập lại mật khẩu của bạn" value={confirmPassword} onChange={handleOnChangeConfirmPassword} />
+            {/* Email */}
+            <InputFormComponent 
+              placeholder="Nhập email" 
+              value={email} 
+              onChange={(value) => {
+                setEmail(value);
+                validateField("email", value);
+              }} 
+            />
+            {errors.email && <span className="text-red-500 text-sm">{errors.email}</span>}
+            
+            {/* Số điện thoại */}
+            <InputFormComponent 
+              placeholder="Nhập số điện thoại" 
+              value={phone} 
+              onChange={(value) => {
+                setPhone(value);
+                validateField("phone", value);
+              }} 
+            />
+            {errors.phone && <span className="text-red-500 text-sm">{errors.phone}</span>}
+            
+            {/* Mật khẩu */}
+            <InputFormComponent 
+              placeholder="Nhập mật khẩu" 
+              type="password" 
+              value={password} 
+              onChange={(value) => {
+                setPassword(value);
+                validateField("password", value);
+              }} 
+            />
+            {errors.password && <span className="text-red-500 text-sm">{errors.password}</span>}
+            
+            {/* Nhập lại mật khẩu */}
+            <InputFormComponent 
+              placeholder="Nhập lại mật khẩu" 
+              type="password" 
+              value={confirmPassword} 
+              onChange={(value) => {
+                setConfirmPassword(value);
+                validateField("confirmPassword", value);
+              }} 
+            />
+            {errors.confirmPassword && <span className="text-red-500 text-sm">{errors.confirmPassword}</span>}
 
             <button
               className="uppercase mb-4 bg-gray-500 py-4 w-full hover:bg-black text-white font-Dosis"
               onClick={handleSignUp}
-              disabled={mutation.isLoading} // Vô hiệu hóa khi đang tải
+              disabled={mutation.isPending}
             >
-              {mutation.isLoading ? 'Đang đăng ký...' : 'Tiếp Tục'}
+              {mutation.isPending ? 'Đang đăng ký...' : 'Tiếp Tục'}
             </button>
-            {message && (
-              <span
-                className={`block mb-4 text-sm ${
-                  messageType === 'success' ? 'text-green-500' : 'text-red-500'
-                }`}
-              >
-                {message}
-              </span>
-            )}
+            
             <p className="mb-4 text-base italic">
               Bằng việc đăng ký, bạn đã đồng ý với{' '}
               <Link className="hover:underline text-blue-500">Điều khoản dịch vụ</Link> &{' '}
@@ -120,8 +158,5 @@ export const SignUpPage = () => {
         </div>
       </div>
     </div>
-
-
-
-  )
-}
+  );
+};

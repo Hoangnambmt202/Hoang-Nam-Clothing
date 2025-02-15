@@ -16,7 +16,16 @@ import SignInPage from "../pages/SignInPage/SignInPage";
 import { SignUpPage } from "../pages/SignUpPage/SignUpPage";
 import ProfilePage from "../pages/ProfilePage/ProfilePage";
 import PasswordPage from "../pages/PasswordPage/PasswordPage";
-
+import AdminLayout from "../layouts/AdminLayout";
+import AdminDashboardPage from "../pages/Admin/AdminDashboardPage";
+import AdminProductPage from "../pages/Admin/AdminProductPage";
+import AdminOrdersPage from "../pages/Admin/AdminOrdersPage";
+import AdminUsersPage from "../pages/Admin/AdminUsersPage";
+import AdminCategoriesPage from "../pages/Admin/AdminCategoriesPage";
+import UserOrdersPage from "../pages/UserOrdersPage/UserOrdersPage";
+import OrderTrackingPage from "../pages/OrderTrackingPage/OrderTrackingPage";
+import UserVouchersPage from "../pages/UserVouchersPage/UserVouchersPage";
+import NotificationPage from "../pages/NotificationPage/NotificationPage";
 
 const routes = [
   {
@@ -52,6 +61,7 @@ const routes = [
   {
     path: "/cart",
     page: CartPage,
+    layout: MainLayout,
   
   },
   {
@@ -72,6 +82,22 @@ const routes = [
       {
         path: "account/password",
         page: PasswordPage,
+      },
+      {
+        path:"orders",
+        page: UserOrdersPage,
+      },
+      {
+        path: "order-tracking",
+        page: OrderTrackingPage,
+      },
+      {
+        path: "my-vouchers",
+        page: UserVouchersPage,
+      },
+      {
+        path: "notification",
+        page: NotificationPage,
       }
     
     ],
@@ -83,15 +109,41 @@ const routes = [
  
   },
   {
-    path: "sign-in",
+    path: "/sign-in",
     page: SignInPage,
    
   },
   {
-    path: "sign-up",
+    path: "/sign-up",
     page: SignUpPage,
-    isShowHeader: false,
+    
   },
+  {
+    path: "/admin",
+    layout: AdminLayout,
+    children: [
+      {
+        path: "",  // Dashboard page - default route
+        page: AdminDashboardPage,
+      },
+      {
+        path: "products",
+        page: AdminProductPage,
+      },
+      {
+        path: "orders",
+        page: AdminOrdersPage
+      },
+      {
+        path: "users",
+        page: AdminUsersPage,
+      },
+      {
+        path: "categories",
+        page: AdminCategoriesPage,
+      }
+    ]
+  }
   
   
  

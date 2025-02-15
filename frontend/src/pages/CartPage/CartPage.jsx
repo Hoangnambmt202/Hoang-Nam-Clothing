@@ -23,7 +23,7 @@ const CartPage = () => {
         quantity: 2,
       },
     ];
-    // const cart = useSelector((state) => state.cart.items) || [];
+
     const [cartItems, setCartItems] = useState(cart);
     const calculateTotal = () => {
         return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -60,7 +60,7 @@ const CartPage = () => {
     return (
       <div className="container px-4 py-8 mx-auto">
         {cart.length === 0 ? (
-          <div className="text-center text-gray-600">Your cart is empty</div>
+          <div className="text-center text-gray-600">Ở dây hơi trống trãi :(((</div>
         ) : (
           <div className="grid gap-6">
             {/* Cart Items */}
@@ -85,12 +85,13 @@ const CartPage = () => {
                         -
                       </button>
                       <input
-                        className="px-4 py-1 border-t border-b"
+                        className="px-4 py-1 border-t border-b w-[60px]"
                         value={item.quantity}
                         type="number"
                         onChange={(e) =>
                           handleQuantityInput(item.id, e.target.value)
                         }
+                      
                       />
 
                       <button

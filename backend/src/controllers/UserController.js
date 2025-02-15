@@ -12,17 +12,25 @@ const createUser = async (req, res) => {
     if (!email || !phone || !password || !confirmPassword) {
       return res.status(200).json({
         status: "err",
-        message: "the input is required",
+        message: "Trường này là bắt buộc!",
       });
     } else if (!isEmail) {
       return res.status(200).json({
         status: "err",
-        message: "the input must be email",
+        message: "Trường này phải là email",
       });
-    } else if (password != confirmPassword) {
+    }
+    else if (phone.length < 10) {
       return res.status(200).json({
         status: "err",
-        message: "password is not equal confirmed",
+      message: "Số điện thoại quá ngắn",
+      })
+    }
+    
+    else if (password != confirmPassword) {
+      return res.status(200).json({
+        status: "err",
+        message: "Mật khẩu và nhập lại mật khẩu không khớp",
       });
     }
 

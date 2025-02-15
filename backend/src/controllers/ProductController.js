@@ -58,7 +58,7 @@ const update = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const { limit, page, sortBy,filter } = req.query; // Lấy các tham số còn lại làm bộ lọc
+    const { limit, page, sortBy,filter } = req.query; 
     const response = await ProductService.getAllProduct(
       Number(limit) || 30,
       Number(page) || 1,

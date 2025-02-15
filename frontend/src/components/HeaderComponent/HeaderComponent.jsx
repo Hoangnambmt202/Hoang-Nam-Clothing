@@ -193,6 +193,11 @@ const Header = () => {
                     </Link>
                   </li>
                   <li>
+                    <Link to="/wishlist" className="block px-4 py-2 hover:text-blue-500">
+                      Danh sách yêu thích
+                    </Link>
+                  </li>
+                  <li>
                     <button onClick={handleLogout} className="block px-4 py-2 hover:text-blue-500">
                       Đăng Xuất
                     </button>
@@ -218,7 +223,7 @@ const Header = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link className="block px-4 py-2 hover:text-blue-500">
+                    <Link to="/sign-up" className="block px-4 py-2 hover:text-blue-500">
                       Đăng Ký
                     </Link>
                   </li>

@@ -50,7 +50,7 @@ function UserLayout() {
             {/* Tài khoản của tôi */}
             <li>
               <button
-                className="w-full flex justify-between text-sm items-center px-3 py-2 text-sm bg-white shadow rounded-md"
+                className="w-full flex justify-between text-sm items-center px-3 py-2 bg-white shadow rounded-md"
                 onClick={() => toggleDropdown("account")}
               >
                 Tài khoản của tôi
@@ -71,6 +71,16 @@ function UserLayout() {
                       Đổi mật khẩu
                     </Link>
                   </li>
+                  <li>
+                    <Link to="/user/account/password" className="block py-1 text-sm hover:text-blue-500">
+                      Địa chỉ
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/user/account/password" className="block py-1 text-sm hover:text-blue-500">
+                      Phương thức thanh toán
+                    </Link>
+                  </li>
                 </ul>
               )}
             </li>
@@ -81,25 +91,15 @@ function UserLayout() {
                 className="w-full flex justify-between items-center px-3 py-2 text-sm bg-white shadow rounded-md"
                 onClick={() => toggleDropdown("wishlist")}
               >
-                Yêu Thích
+                Sản Phẩm Yêu Thích
                 <FontAwesomeIcon
                   icon={activeDropdown === "wishlist" ? faChevronUp : faChevronDown}
                 />
               </button>
-              {activeDropdown === "wishlist" && (
-                <ul className="pl-6 mt-2 space-y-1">
-                  <li>
-                    <Link to="/wishlist/shoes" className="block py-1 text-sm hover:text-blue-500">
-                      Giày yêu thích
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/wishlist/accessories" className="block py-1 text-sm hover:text-blue-500">
-                      Phụ kiện yêu thích
-                    </Link>
-                  </li>
-                </ul>
-              )}
+              
+                 
+                
+          
             </li>
 
             {/* Đơn Mua */}
@@ -121,7 +121,7 @@ function UserLayout() {
                     </Link>
                   </li>
                   <li>
-                    <Link to="/order-tracking" className="block py-1 text-sm hover:text-blue-500">
+                    <Link to="/user/order-tracking" className="block py-1 text-sm hover:text-blue-500">
                       Theo dõi đơn hàng
                     </Link>
                   </li>
@@ -131,43 +131,28 @@ function UserLayout() {
 
             {/* Voucher */}
             <li>
-              <button
+              <Link to="/user/my-vouchers"
                 className="w-full flex justify-between items-center px-3 py-2 text-sm bg-white shadow rounded-md"
-                onClick={() => toggleDropdown("voucher")}
+               
               >
                 Voucher của tôi
-                <FontAwesomeIcon
-                  icon={activeDropdown === "voucher" ? faChevronUp : faChevronDown}
-                />
-              </button>
-              {activeDropdown === "voucher" && (
-                <ul className="pl-6 mt-2 space-y-1">
-                  <li>
-                    <Link to="/user/voucher/available" className="block py-1 text-sm hover:text-blue-500">
-                      Voucher khả dụng
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/user/voucher/used" className="block py-1 text-sm hover:text-blue-500">
-                      Voucher đã dùng
-                    </Link>
-                  </li>
-                </ul>
-              )}
+               
+              </Link>
+             
             </li>
 
             {/* Thông báo */}
             <li>
-              <button
+              <Link to="/user/notification"
                 className="w-full flex justify-between items-center px-3 py-2 text-sm bg-white shadow rounded-md"
                 onClick={() => toggleDropdown("notifications")}
               >
                 Thông báo
-                <FontAwesomeIcon
+                {/* <FontAwesomeIcon
                   icon={activeDropdown === "notifications" ? faChevronUp : faChevronDown}
-                />
-              </button>
-              {activeDropdown === "notifications" && (
+                /> */}
+              </Link>
+              {/* {activeDropdown === "notifications" && (
                 <ul className="pl-6 mt-2 space-y-1">
                   <li>
                     <Link to="/user/notifications/system" className="block py-1 text-sm hover:text-blue-500">
@@ -180,7 +165,7 @@ function UserLayout() {
                     </Link>
                   </li>
                 </ul>
-              )}
+              )} */}
             </li>
           </ul>
         </div>
