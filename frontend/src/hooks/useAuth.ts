@@ -17,10 +17,10 @@ export function useAuth() {
       })
   );
 
-  async function login(email: string, password: string) {
+  async function login(phone: string, password: string) {
     const res = await apiFetch("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ phone, password }),
     });
 
     dispatch(setCredentials({ user: res.user, accessToken: res.accessToken }));
