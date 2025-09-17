@@ -1,39 +1,33 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS
-  app.enableCors({
-    origin: '*', // TODO: chỉnh domain khi deploy
-    credentials: true,
-  });
-
-  // Global validation
+  // Global pipes
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // loại bỏ field thừa
-      forbidNonWhitelisted: true, // báo lỗi nếu có field lạ
-      transform: true, // tự động transform DTO
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
     }),
   );
 
-  // Swagger
-  const config = new DocumentBuilder()
-    .setTitle('Ecommerce Fashion Shop API')
-    .setDescription('API documentation for ecommerce shop')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+  // CORS
+  app.enableCors({
+    origin: ['http://localhost:3000', '*'], // Frontend URLs
+    credentials: true,
+  });
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // Global prefix
+  app.setGlobalPrefix('api/v1');
 
-  const port = process.env.PORT || 3000;
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('PORT') || 8080;
+
   await app.listen(port);
-  console.log(`🚀 Server running on http://localhost:${port}`);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 bootstrap();

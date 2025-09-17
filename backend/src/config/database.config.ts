@@ -1,12 +1,17 @@
-import { registerAs } from '@nestjs/config';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 
-export default registerAs('database', () => ({
+export const getDatabaseConfig = (
+  configService: ConfigService,
+): TypeOrmModuleOptions => ({
   type: 'postgres',
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 5432,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
+  host: configService.get<string>('DB_HOST'),
+  port: configService.get<number>('DB_PORT'),
+  username: configService.get<string>('DB_USERNAME'),
+  password: configService.get<string>('DB_PASSWORD'),
+  database: configService.get<string>('DB_NAME'),
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   autoLoadEntities: true,
-  synchronize: true, // ❌ chỉ dùng dev, production phải migration
-}));
+  synchronize: true, // Chỉ dùng trong development
+  logging: true,
+});

@@ -14,6 +14,13 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"], // Alias cho tất cả các module trong thư mục src
+      "@app/*": ["src/app/*"], // Alias cho các module trong thư mục src/app
+      "@modules/*": ["src/modules/*"], // Alias cho các module trong thư mục src/modules
+      "@config/*": ["src/config/*"], // Alias cho các file cấu hình
+      "@common/*": ["src/common/*"] // Alias cho các file dùng chung
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
