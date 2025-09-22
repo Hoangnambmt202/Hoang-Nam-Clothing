@@ -30,4 +30,5 @@ export class Category {
 
   @UpdateDateColumn()
   updatedAt: Date;
+  productCount: number;
 }
