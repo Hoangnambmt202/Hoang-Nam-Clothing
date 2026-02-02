@@ -6,7 +6,6 @@ import {
   IsBoolean,
   IsUUID,
   Min,
-  IsUrl,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -22,21 +21,15 @@ export class CreateProductDto {
   @Min(0)
   price: number;
 
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Type(() => Number)
-  @Min(0)
-  salePrice?: number;
-
   @IsNumber()
   @Type(() => Number)
   @Min(0)
-  stock: number;
+  stock_quantity: number;
 
   @IsOptional()
   @IsArray()
-  @IsUrl({}, { each: true })
-  images?: string[];
+  @IsString({ each: true })
+  tags?: string[];
 
   @IsOptional()
   @IsArray()
@@ -50,8 +43,12 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  is_available?: boolean;
 
   @IsUUID()
   categoryId: string;
+
+  @IsOptional()
+  @IsUUID()
+  brandId?: string;
 }

@@ -10,12 +10,22 @@ import { Category } from '@modules/categories/entities/category.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
+import { CreateVariantDto } from './dto/create-variant.dto';
+import { ProductVariant } from './entities/product-variant.entity';
+import { ProductImage } from './entities/product-image.entity';
+import { UpdateVariantDto } from './dto/update-variant.dto';
+import { CreateImageDto } from './dto/create-image.dto';
+import { UpdateImageDto } from './dto/update-image.dto';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productsRepository: Repository<Product>,
+    @InjectRepository(ProductVariant)
+    private variantRepository: Repository<ProductVariant>,
+    @InjectRepository(ProductImage)
+    private imageRepository: Repository<ProductImage>,
     @InjectRepository(Category)
     private categoriesRepository: Repository<Category>,
   ) {}
@@ -28,16 +38,6 @@ export class ProductsService {
 
     if (!category) {
       throw new NotFoundException('Category not found');
-    }
-
-    // Validate sale price
-    if (
-      createProductDto.salePrice &&
-      createProductDto.salePrice >= createProductDto.price
-    ) {
-      throw new BadRequestException(
-        'Sale price must be less than regular price',
-      );
     }
 
     const product = this.productsRepository.create(createProductDto);
@@ -134,7 +134,7 @@ export class ProductsService {
   async findOne(id: string): Promise<Product> {
     const product = await this.productsRepository.findOne({
       where: { id },
-      relations: ['category'],
+      relations: ['category', 'variants', 'images', 'brand'],
     });
 
     if (!product) {
@@ -146,7 +146,7 @@ export class ProductsService {
 
   async findFeatured(limit: number = 10): Promise<Product[]> {
     return this.productsRepository.find({
-      where: { isActive: true },
+      where: { is_available: true },
       relations: ['category'],
       order: { createdAt: 'DESC' },
       take: limit,
@@ -167,7 +167,7 @@ export class ProductsService {
     return this.productsRepository.find({
       where: {
         categoryId: product.categoryId,
-        isActive: true,
+        is_available: true,
         id: Not(productId),
       },
       relations: ['category'],
@@ -198,34 +198,6 @@ export class ProductsService {
         throw new NotFoundException('Category not found');
       }
     }
-
-    // Validate sale price
-    if (
-      updateProductDto.salePrice !== undefined &&
-      updateProductDto.price !== undefined
-    ) {
-      if (updateProductDto.salePrice >= updateProductDto.price) {
-        throw new BadRequestException(
-          'Sale price must be less than regular price',
-        );
-      }
-    } else if (
-      updateProductDto.salePrice !== undefined &&
-      updateProductDto.salePrice >= product.price
-    ) {
-      throw new BadRequestException(
-        'Sale price must be less than regular price',
-      );
-    } else if (
-      updateProductDto.price !== undefined &&
-      product.salePrice &&
-      product.salePrice >= updateProductDto.price
-    ) {
-      throw new BadRequestException(
-        'Sale price must be less than regular price',
-      );
-    }
-
     Object.assign(product, updateProductDto);
     return this.productsRepository.save(product);
   }
@@ -270,12 +242,12 @@ export class ProductsService {
     }
 
     if (operation === 'decrease') {
-      if (product.stock < quantity) {
+      if (product.stock_quantity < quantity) {
         throw new BadRequestException('Insufficient stock');
       }
-      product.stock -= quantity;
+      product.stock_quantity -= quantity;
     } else {
-      product.stock += quantity;
+      product.stock_quantity += quantity;
     }
 
     return this.productsRepository.save(product);
@@ -290,10 +262,12 @@ export class ProductsService {
   }> {
     const [total, active, inactive, outOfStock, lowStock] = await Promise.all([
       this.productsRepository.count(),
-      this.productsRepository.count({ where: { isActive: true } }),
-      this.productsRepository.count({ where: { isActive: false } }),
-      this.productsRepository.count({ where: { stock: 0 } }),
-      this.productsRepository.count({ where: { stock: LessThanOrEqual(10) } }),
+      this.productsRepository.count({ where: { is_available: true } }),
+      this.productsRepository.count({ where: { is_available: false } }),
+      this.productsRepository.count({ where: { stock_quantity: 0 } }),
+      this.productsRepository.count({
+        where: { stock_quantity: LessThanOrEqual(10) },
+      }),
     ]);
 
     return {
@@ -366,5 +340,48 @@ export class ProductsService {
         max: parseFloat(priceQuery?.max ?? '0'),
       },
     };
+  }
+  // products.service.ts
+  async createVariant(productId: string, dto: CreateVariantDto) {
+    const product = await this.productsRepository.findOne({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+    console.log('dto', dto);
+    const variant = this.variantRepository.create({
+      ...dto, // 👈 đảm bảo map color, size, sku...
+      productId, // productId từ param
+    });
+
+    return this.variantRepository.save(variant);
+  }
+
+  async updateVariant(id: string, dto: UpdateVariantDto) {
+    await this.variantRepository.update(id, dto);
+    return this.variantRepository.findOne({ where: { id } });
+  }
+
+  async deleteVariant(id: string) {
+    return this.variantRepository.delete(id);
+  }
+
+  async createImage(dto: CreateImageDto) {
+    const image = this.imageRepository.create({
+      ...dto,
+      product: { id: dto.productId },
+    });
+    return this.imageRepository.save(image);
+  }
+
+  async updateImage(id: string, dto: UpdateImageDto) {
+    await this.imageRepository.update(id, dto);
+    return this.imageRepository.findOne({ where: { id } });
+  }
+
+  async deleteImage(id: string) {
+    return this.imageRepository.delete(id);
   }
 }

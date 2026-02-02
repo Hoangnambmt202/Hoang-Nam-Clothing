@@ -148,7 +148,7 @@ export class CategoriesService {
 
     const totalProducts = category.products?.length || 0;
     const activeProducts =
-      category.products?.filter((p) => p.isActive).length || 0;
+      category.products?.filter((p) => p.is_available).length || 0;
     const inactiveProducts = totalProducts - activeProducts;
 
     return {

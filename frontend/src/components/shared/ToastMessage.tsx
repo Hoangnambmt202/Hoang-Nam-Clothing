@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
 
-// eslint-disable-next-line react/prop-types
-const ToastMessageComponent = ({ message, color, onClose, duration = 3000 }) => {
+interface ToastMessageProps {
+  message: string;
+  color: string;
+  onClose: () => void;
+  duration?: number;
+}
+
+const ToastMessage = ({
+  message,
+  color,
+  onClose,
+  duration = 3000,
+}: ToastMessageProps) => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -13,13 +24,14 @@ const ToastMessageComponent = ({ message, color, onClose, duration = 3000 }) => 
     return () => clearTimeout(timer);
   }, [onClose, duration]);
 
-  const bgColor = {
-    blue: "bg-blue-500",
-    red: "bg-red-500",
-    green: "bg-green-500",
-    yellow: "bg-yellow-500",
-    gray: "bg-gray-500",
-  }[color] || "bg-blue-500";
+  const bgColor =
+    {
+      blue: "bg-blue-500",
+      red: "bg-red-500",
+      green: "bg-green-500",
+      yellow: "bg-yellow-500",
+      gray: "bg-gray-500",
+    }[color] || "bg-blue-500";
 
   return (
     <div
@@ -60,4 +72,4 @@ const ToastMessageComponent = ({ message, color, onClose, duration = 3000 }) => 
   );
 };
 
-export default ToastMessageComponent;
+export default ToastMessage;

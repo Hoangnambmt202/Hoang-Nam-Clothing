@@ -10,12 +10,12 @@ export default function MenuToggle() {
   return (
     <>
       <button
-        className="flex items-center gap-4 text-sm text-gray-600 hover:text-blue-500 justify-end grow-3"
+        className="flex items-center gap-4 text-sm text-white hover:opacity-60 hover:cursor-pointer justify-end grow-3"
         onClick={() => setIsOpen(!isOpen)}
       >
         <svg
           className="w-6 h-6"
-          fill="none"
+          fill="#fff"
           stroke="currentColor"
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
@@ -27,12 +27,11 @@ export default function MenuToggle() {
             d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
           />
         </svg>
-        <span className="hidden lg:inline-block md:inline-block">MENU</span>
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50">
-          <nav className="fixed top-0 left-0 flex flex-col items-center h-screen text-black uppercase bg-white shadow-lg w-96 transform transition-transform duration-700 ease-in-out">
+        <div className="fixed inset-0 z-51 bg-black/50">
+          <nav className="fixed top-0 right-0 flex flex-col items-center h-screen text-black uppercase bg-white shadow-lg w-96 transform transition-transform duration-700 ease-in-out">
             <div className="flex justify-end w-full h-20 py-6 px-14">
               <button onClick={() => setIsOpen(false)}>
                 <X size={20} color="black" />
@@ -54,7 +53,7 @@ export default function MenuToggle() {
                   href="/new-arrivals"
                   className="flex items-center justify-between text-base text-gray-600 h-9 hover:text-blue-500"
                 >
-                  <span>Hàng Mới</span>
+                  <span>New Arrivals</span>
                   <ChevronRight size={24} color="gray" />
                 </Link>
               </li>
@@ -72,7 +71,7 @@ export default function MenuToggle() {
                   href="/collection"
                   className="flex items-center justify-between text-base text-gray-600 h-9 hover:text-blue-500"
                 >
-                  <span>Bộ Sưu Tập</span>
+                  <span>Collection</span>
                   <ChevronRight size={24} color="gray" />
                 </Link>
               </li>

@@ -1,0 +1,38 @@
+{
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "Welcome to our store",
+    "subtitle": "Discover our latest collection",
+    "button": "Shop now"
+  },
+  "categories": {
+    "title": "Product categories",
+    "subtitle": "Discover our product categories",
+    "button": "See more"
+  },
+  "products": {
+    "title": "Featured products",
+    "subtitle": "Discover our featured products",
+    "button": "See more"
+  },
+  "newsletter": {
+    "title": "Subscribe to our newsletter",
+    "subtitle": "Get updates on new collections and special offers",
+    "button": "Subscribe"
+  },
+  "footer": {
+    "aboutTitle": "About us",
+    "aboutSubtitle": "We are a clothing store that specializes in providing high-quality products",
+    "quickLinks": "Quick links",
+    "social": "Social media",
+    "newsletter": "Subscribe to our newsletter",
+    "newsletterSubtitle": "Get updates on new collections and special offers",
+    "join": "Join",
+    "copyright": "Built by CoderToData — All Rights Reserved."
+  }
+}

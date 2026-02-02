@@ -9,8 +9,8 @@ import { ProductsModule } from '@modules/products/products.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, Product]), // 🟢 đăng ký repo
-    ProductsModule, // 🟢 để inject ProductsService
+    TypeOrmModule.forFeature([Order, OrderItem, Product]),
+    ProductsModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

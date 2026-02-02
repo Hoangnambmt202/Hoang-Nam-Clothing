@@ -37,20 +37,20 @@ export class OrdersService {
 
     for (const item of items) {
       const product = await this.productsRepository.findOne({
-        where: { id: item.productId, isActive: true },
+        where: { id: item.productId },
       });
 
       if (!product) {
         throw new NotFoundException(`Product ${item.productId} not found`);
       }
 
-      if (product.stock < item.quantity) {
+      if (product.stock_quantity < item.quantity) {
         throw new BadRequestException(
           `${product.name} đã hết hàng hoặc không đủ số lượng`,
         );
       }
 
-      const price = product.salePrice || product.price;
+      const price = product.price;
       const itemTotal = Number(price) * item.quantity;
       totalAmount += itemTotal;
 
@@ -93,10 +93,6 @@ export class OrdersService {
       );
     }
 
-    // Clear user's cart
-    // await this.cartService.clearCart(userId);
-
-    // Return order with items
     return this.findOne(savedOrder.id);
   }
 

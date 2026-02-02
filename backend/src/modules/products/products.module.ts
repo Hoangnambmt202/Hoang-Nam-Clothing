@@ -4,9 +4,13 @@ import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
 import { Product } from './entities/product.entity';
 import { Category } from '../categories/entities/category.entity';
+import { ProductImage } from './entities/product-image.entity';
+import { ProductVariant } from './entities/product-variant.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, Category])],
+  imports: [
+    TypeOrmModule.forFeature([Product, Category, ProductImage, ProductVariant]),
+  ],
   controllers: [ProductsController],
   providers: [ProductsService],
   exports: [ProductsService],

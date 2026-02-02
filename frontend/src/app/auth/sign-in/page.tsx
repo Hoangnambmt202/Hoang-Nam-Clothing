@@ -5,7 +5,7 @@ import { useAuth } from "@hooks/useAuth";
 
 import { useRouter } from "next/navigation";
 import InputForm from "@/components/ui/InputForm";
-import ToastMessageComponent from "@/components/ToastMessageComponent/ToastMessageComponent";
+import ToastMessageComponent from "@/components/shared/ToastMessage";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import Button from "@/components/ui/Button";
 import { ChevronLeft, Home } from "lucide-react";
@@ -38,45 +38,52 @@ const SignInPage = () => {
           onClose={() => setToast({ ...toast, show: false })}
         />
       )}
-          <ChevronLeft size={16} className="inline-block mr-2 text-black" />
-        <Button  className="mt-4 rounded-full">
-          <Link href="/"> <Home size={16} className="inline-block " /> </Link>
-        </Button>
+      <ChevronLeft size={16} className="inline-block mr-2 text-black" />
+      <Button className="mt-4 rounded-full">
+        <Link href="/">
+          {" "}
+          <Home size={16} className="inline-block " />{" "}
+        </Link>
+      </Button>
       <div className="grid grid-cols-4 py-8">
         <div className="flex flex-col justify-center items-center col-start-2 col-span-2 px-4">
-          <h2 className="uppercase font-Dosis text-black text-3xl mb-4"> Đăng Nhập </h2>
+          <h2 className="uppercase font-Dosis text-black text-3xl mb-4">
+            {" "}
+            Đăng Nhập{" "}
+          </h2>
           <p className="italic font-thin text-gray-600 mb-4">
             Đăng nhập để tích điểm và hưởng ưu đãi thành viên khi mua hàng. Nhập
             số điện thoại để tiếp tục đăng nhập hoặc đăng ký thành viên.
           </p>
           <div className="flex flex-col  mb-4">
-            <form onSubmit={handleLogin}  className="flex flex-col space-y-2" >
-
-                <InputForm
+            <form onSubmit={handleLogin} className="flex flex-col space-y-2">
+              <InputForm
                 name="phone"
                 type="text"
                 onChange={handleOnChangePhone}
                 placeholder="Vui lòng nhập số điện thoại của bạn"
                 value={phone}
                 className="text-gray-500 "
-                />
-                <InputForm
+              />
+              <InputForm
                 name="password"
                 type="password"
                 onChange={handleOnChangePassword}
                 value={password}
                 placeholder="Mật khẩu"
                 className="text-gray-500 "
-                />
-                <button
+              />
+              <button
                 className="uppercase mb-4 bg-gray-500 py-4 w-full hover:bg-black text-white font-Dosis"
                 onClick={handleLogin}
-                >
+              >
                 Đăng Nhập
-                </button>
+              </button>
             </form>
 
-            <p className="mb-4 text-base text-center text-gray-500">hoặc đăng nhập với</p>
+            <p className="mb-4 text-base text-center text-gray-500">
+              hoặc đăng nhập với
+            </p>
             <div className="flex justify-center items-center mb-4">
               <Link href="/sign-in/facebook" className="mr-8">
                 <FaFacebook size={20} color="blue" />
@@ -86,7 +93,7 @@ const SignInPage = () => {
               </Link>
             </div>
             <p className="mb-4 text-base italic text-black text-center">
-              Bằng việc đăng nhập, bạn đã đồng ý với{" "} <br />
+              Bằng việc đăng nhập, bạn đã đồng ý với <br />
               <Link
                 href={"/dieu-khoan"}
                 className="hover:underline text-blue-500"
