@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 
 import InputForm from "@/components/ui/InputForm";
-import ToastMessageComponent from "@/components/shared/ToastMessage";
 import { ChevronLeft, Home } from "lucide-react";
 import Button from "@/components/ui/Button";
 
@@ -61,13 +60,6 @@ const SignUpPage = () => {
 
   return (
     <div className="container min-h-screen px-4 mx-auto bg-white">
-      {toast.show && (
-        <ToastMessageComponent
-          message={toast.message}
-          color={toast.color}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
-      )}
       <ChevronLeft size={16} className="inline-block mr-2 text-black" />
       <Button className="mt-4 rounded-full">
         <Link href="/">

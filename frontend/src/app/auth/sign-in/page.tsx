@@ -5,39 +5,26 @@ import { useAuth } from "@hooks/useAuth";
 
 import { useRouter } from "next/navigation";
 import InputForm from "@/components/ui/InputForm";
-import ToastMessageComponent from "@/components/shared/ToastMessage";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import Button from "@/components/ui/Button";
 import { ChevronLeft, Home } from "lucide-react";
+import { showToast } from "nextjs-toast-notify";
 
 const SignInPage = () => {
   const { login } = useAuth();
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [toast, setToast] = useState({ show: false, message: "", color: "" });
-
   const handleOnChangePhone = (value: any) => setPhone(value);
   const handleOnChangePassword = (value: any) => setPassword(value);
 
   const handleLogin = async () => {
     // login(phone, password)
-    ToastMessageComponent({
-      message: "Đang đăng nhập...",
-      color: "blue",
-      onClose: () => setToast({ ...toast, show: false }),
-    });
+    showToast.info("Đang đăng nhập...", { duration: 1500 });
   };
 
   return (
     <div className="container min-h-screen px-4 mx-auto bg-white">
-      {toast.show && (
-        <ToastMessageComponent
-          message={toast.message}
-          color={toast.color}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
-      )}
       <ChevronLeft size={16} className="inline-block mr-2 text-black" />
       <Button className="mt-4 rounded-full">
         <Link href="/">
