@@ -1,8 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,10 +16,9 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-
   // CORS
   app.enableCors({
-    origin: ['http://localhost:3000', '*'], // Frontend URLs
+    origin: ['http://localhost:3000', 'https://hoang-nam.vercel.app', '*'], // Frontend URLs
     credentials: true,
   });
 
@@ -26,7 +26,8 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   // Global filters
   app.useGlobalFilters(new HttpExceptionFilter());
-
+  // Global interceptors
+  app.useGlobalInterceptors(new ResponseInterceptor());
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 8080;
 

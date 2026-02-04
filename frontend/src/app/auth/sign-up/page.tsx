@@ -1,22 +1,20 @@
-'use client'
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
 
 import InputForm from "@/components/ui/InputForm";
-import ToastMessageComponent from "@/components/ToastMessageComponent/ToastMessageComponent";
+import ToastMessageComponent from "@/components/shared/ToastMessage";
 import { ChevronLeft, Home } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 const SignUpPage = () => {
-
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({}); // State để lưu lỗi của từng input
   const [toast, setToast] = useState({ show: false, message: "", color: "" });
-
 
   const validateField = (name: string, value: any) => {
     let error = "";
@@ -59,7 +57,6 @@ const SignUpPage = () => {
     validateField("phone", phone);
     validateField("password", password);
     validateField("confirmPassword", confirmPassword);
-  
   };
 
   return (
@@ -71,14 +68,16 @@ const SignUpPage = () => {
           onClose={() => setToast({ ...toast, show: false })}
         />
       )}
-  <ChevronLeft size={16} className="inline-block mr-2 text-black" />
-        <Button  className="mt-4 rounded-full">
-          <Link href="/"> <Home size={16} className="inline-block " /> </Link>
-        </Button>
+      <ChevronLeft size={16} className="inline-block mr-2 text-black" />
+      <Button className="mt-4 rounded-full">
+        <Link href="/">
+          {" "}
+          <Home size={16} className="inline-block " />{" "}
+        </Link>
+      </Button>
       <div className="grid grid-cols-4 py-8">
         <div className="flex flex-col justify-center items-center col-start-2 col-span-2 px-4">
           <h2 className="uppercase font-Dosis text-3xl mb-4 text-black">
-            
             Đăng Ký Thành Viên
           </h2>
           <p className="italic font-thin mb-4 text-gray-600">
@@ -110,7 +109,7 @@ const SignUpPage = () => {
                 setPhone(value);
                 validateField("phone", value);
               }}
-                className="text-gray-500"
+              className="text-gray-500"
             />
             {/* {errors.phone && <span className="text-red-500 text-sm">{errors.phone}</span>} */}
 
@@ -124,7 +123,7 @@ const SignUpPage = () => {
                 setPassword(value);
                 validateField("password", value);
               }}
-                className="text-gray-500"
+              className="text-gray-500"
             />
             {/* {errors.password && <span className="text-red-500 text-sm">{errors.password}</span>} */}
 
@@ -138,7 +137,7 @@ const SignUpPage = () => {
                 setConfirmPassword(value);
                 validateField("confirmPassword", value);
               }}
-                className="text-gray-500"
+              className="text-gray-500"
             />
             {/* {errors.confirmPassword && <span className="text-red-500 text-sm">{errors.confirmPassword}</span>} */}
 

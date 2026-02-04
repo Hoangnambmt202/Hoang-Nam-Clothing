@@ -1,4 +1,4 @@
-import { User } from '@modules/user/entities/user.entity';
+import { User } from '@/modules/users/entities/users.entity';
 import { IsString } from 'class-validator';
 
 export class AuthResponseDto {

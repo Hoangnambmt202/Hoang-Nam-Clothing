@@ -48,12 +48,14 @@ Dự án hướng đến sự **hiệu quả, ổn định và khả năng mở 
 
 Hoang Nam – Fullstack Developer
 
-### Contact 
+### 📬 Contact
+
+Tác giả: Nam CodertoData
 
 Email: nam23062002@gmail.com
 
-ĐT: 0914837433
+Portfolio: https://codertodata.vercel.app
 
-
+👉 Nếu bạn có dự án nào hãy liên hệ với tôi nhé 
 
 📜 License: MIT

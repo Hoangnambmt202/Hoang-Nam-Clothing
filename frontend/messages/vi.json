@@ -1,0 +1,38 @@
+{
+  "nav": {
+    "home": "Trang chủ",
+    "shop": "Cửa hàng",
+    "about": "Giới thiệu",
+    "contact": "Liên hệ"
+  },
+  "hero": {
+    "title": "Chào mừng đến với cửa hàng của chúng tôi",
+    "subtitle": "Khám phá bộ sưu tập mới nhất của chúng tôi",
+    "button": "Mua ngay"
+  },
+  "categories": {
+    "title": "Danh mục sản phẩm",
+    "subtitle": "Khám phá các danh mục sản phẩm của chúng tôi",
+    "button": "Xem thêm"
+  },
+  "products": {
+    "title": "Sản phẩm nổi bật",
+    "subtitle": "Khám phá các sản phẩm nổi bật của chúng tôi",
+    "button": "Xem thêm"
+  },
+  "newsletter": {
+    "title": "Đăng ký nhận tin",
+    "subtitle": "Nhận thông tin về bộ sưu tập mới và ưu đãi đặc biệt",
+    "button": "Đăng ký"
+  },
+  "footer": {
+    "aboutTitle": "Về chúng tôi",
+    "aboutSubtitle": "Chúng tôi là một cửa hàng quần áo chuyên cung cấp các sản phẩm chất lượng cao",
+    "quickLinks": "Liên kết nhanh",
+    "social": "Mạng xã hội",
+    "newsletter": "Đăng ký nhận tin",
+    "newsletterSubtitle": "Nhận thông tin về bộ sưu tập mới và ưu đãi đặc biệt",
+    "join": "Tham gia",
+    "copyright": "Được xây dựng bởi Hoang Nam — All Rights Reserved."
+  }
+}
