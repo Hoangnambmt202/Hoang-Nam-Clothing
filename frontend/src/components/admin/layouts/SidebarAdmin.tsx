@@ -14,318 +14,374 @@ import {
   Container,
   FileClock,
   Map,
+  Newspaper,
+  TableOfContents,
+  Layers,
+  Flag,
+  ChartArea,
+  TrendingUp,
+  Warehouse,
 } from "lucide-react";
-import { useState } from "react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import MenuItem from "@/types/menu";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  toggleSidebar,
+  toggleMenu,
+  setOpenMenus,
+} from "@/store/ui/sidebar.slice";
+import { AppDispatch, RootState } from "@/store/store";
+import { useAuth } from "@/hooks/useAuth";
 
-const Sidebar = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+const SidebarAdmin = () => {
   const pathname = usePathname();
+  const dispatch = useDispatch<AppDispatch>();
+  const { isOpen: isSidebarOpen, openMenus } = useSelector(
+    (state: RootState) => state.sidebar,
+  );
+  const { user } = useAuth();
 
+  const initials = user
+    ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || "AD"
+    : "AD";
+  const singleInitial = initials[0] || "A";
+  const displayName = user
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+    : "Admin";
+  const displayEmail = user?.email || "admin@hn.com";
+
+  /* ================= MENU DATA ================= */
   const menuItems: MenuItem[] = [
     {
-      icon: <ShoppingBag size={20} />,
+      key: "sale",
       label: "Bán hàng",
-      count: "54",
+      icon: <ShoppingBag size={20} />,
       children: [
         {
-          icon: <ShoppingBag size={20} />,
-          link: "/admin/orders",
+          key: "orders",
           label: "Đơn hàng",
-          count: "54",
+          icon: <ShoppingBag size={18} />,
+          link: "/admin/orders",
         },
         {
-          icon: <ShoppingBag size={20} />,
-          link: "/admin/orders/returns",
+          key: "returns",
           label: "Trả hàng / Hoàn tiền",
-          count: "54",
+          icon: <ShoppingBag size={18} />,
+          link: "/admin/orders/returns",
         },
         {
-          icon: <ShoppingBag size={20} />,
-          link: "/admin/orders/transactions",
+          key: "transactions",
           label: "Giao dịch",
-          count: "54",
+          icon: <ShoppingBag size={18} />,
+          link: "/admin/orders/transactions",
         },
       ],
     },
     {
-      icon: <Container size={20} />,
+      key: "products",
       label: "Sản phẩm",
-      count: "245",
+      icon: <Container size={20} />,
       children: [
         {
-          icon: <Package size={20} />,
-          link: "/admin/products",
+          key: "products-all",
           label: "Quản lý sản phẩm",
-          count: "245",
+          icon: <Package size={18} />,
+          link: "/admin/products",
         },
         {
-          icon: <ChartBarStacked size={20} />,
-          link: "/admin/categories",
+          key: "categories",
           label: "Danh mục",
-          count: "5",
+          icon: <ChartBarStacked size={18} />,
+          link: "/admin/categories",
         },
         {
-          icon: <ChartBarStacked size={20} />,
-          link: "/admin/products/variants",
+          key: "variants",
           label: "Thuộc tính",
-          count: "5",
+          icon: <ChartBarStacked size={18} />,
+          link: "/admin/products/variants",
         },
         {
-          icon: <ChartBarStacked size={20} />,
-          link: "/admin/inventory",
+          key: "inventory",
           label: "Kho hàng",
-          count: "5",
+          icon: <ChartBarStacked size={18} />,
+          link: "/admin/inventory",
         },
       ],
     },
-
     {
+      key: "users",
+      label: "Người dùng",
       icon: <Users size={20} />,
-      label: "Khách hàng",
-      count: "1,200",
       children: [
         {
-          icon: <Users size={20} />,
-          link: "/admin/customers",
+          key: "users-customers",
           label: "Danh sách khách hàng",
-          count: "1,200",
+          icon: <Users size={18} />,
+          link: "/admin/users/customers",
         },
         {
-          icon: <Users size={20} />,
-          link: "/admin/customers/groups",
-          label: "Nhóm khách hàng",
-          count: "1,200",
-        },
-        {
-          icon: <FileClock size={20} />,
-          link: "/admin/customers/history",
-          label: "Lịch sử mua hàng",
-          count: "1,200",
-        },
-        {
-          icon: <Map size={20} />,
-          link: "/admin/customers/addresses",
-          label: "Địa chỉ giao hàng",
-          count: "1,200",
-        },
-        {
-          icon: <Users size={20} />,
-          link: "/admin/customers/reviews",
+          key: "users-reviews",
           label: "Đánh giá",
-          count: "1,200",
+          icon: <Users size={18} />,
+          link: "/admin/users/reviews",
+        },
+        {
+          key: "users-staffs",
+          label: "Nhân viên",
+          icon: <Users size={18} />,
+          link: "/admin/users/staffs",
+        },
+        {
+          key: "users-logs",
+          label: "Nhật ký hoạt động",
+          icon: <Users size={18} />,
+          link: "/admin/users/logs",
         },
       ],
     },
-
     {
-      icon: <DollarSign size={20} />,
+      key: "reports",
       label: "Báo cáo & Thống kê",
-      count: null,
+      icon: <ChartArea size={20} />,
       children: [
         {
-          icon: <ChartBarStacked size={20} />,
-          link: "/admin/reports/revenue",
+          key: "report-revenue",
           label: "Doanh thu",
-          count: null,
+          icon: <DollarSign size={18} />,
+          link: "/admin/reports/revenue",
         },
         {
-          icon: <ChartBarStacked size={20} />,
-          link: "/admin/reports/bestseller",
+          key: "report-bestseller",
           label: "Sản phẩm bán chạy",
-          count: null,
+          icon: <TrendingUp size={18} />,
+          link: "/admin/reports/bestseller",
         },
         {
-          icon: <ChartBarStacked size={20} />,
-          link: "/admin/reports/inventory",
+          key: "report-inventory",
           label: "Báo cáo tồn kho",
-          count: null,
+          icon: <Warehouse size={18} />,
+          link: "/admin/reports/inventory",
         },
       ],
     },
     {
-      icon: <Users size={20} />,
+      key: "marketing",
       label: "Marketing",
-      count: "1,200",
+      icon: <Users size={20} />,
       children: [
         {
-          icon: <Users size={20} />,
-          link: "/admin/marketing/discounts",
+          key: "discounts",
           label: "Mã giảm giá",
-          count: "1,200",
+          icon: <Users size={18} />,
+          link: "/admin/marketing/discounts",
         },
         {
-          icon: <FileClock size={20} />,
-          link: "/admin/marketing/flash-sale",
+          key: "flash-sale",
           label: "Flash sale",
-          count: "1,200",
+          icon: <FileClock size={18} />,
+          link: "/admin/marketing/flash-sales",
         },
         {
-          icon: <Map size={20} />,
-          link: "/admin/marketing/email",
+          key: "email-marketing",
           label: "Email marketing",
-          count: "1,200",
+          icon: <Map size={18} />,
+          link: "/admin/marketing/email",
         },
       ],
     },
     {
-      icon: <Truck size={20} />,
+      key: "content",
       label: "SEO & Nội dung",
-      count: null,
+      icon: <TableOfContents size={20} />,
       children: [
         {
-          icon: <Truck size={20} />,
+          key: "news",
+          label: "Tin tức / Bài viết",
+          icon: <Newspaper size={18} />,
           link: "/admin/content/news",
-          label: "Tin tức/ Bài viết",
-          count: "2",
         },
         {
-          icon: <Truck size={20} />,
+          key: "pages",
+          label: "Trang tĩnh",
+          icon: <Layers size={18} />,
           link: "/admin/content/pages",
-          label: "Trang tĩnh", //Giới thiệu, Chính sách bảo mật, Hướng dẫn chọn size.
-          count: "2",
         },
         {
-          icon: <Truck size={20} />,
+          key: "banners",
+          label: "Banner / Slider",
+          icon: <Flag size={18} />,
           link: "/admin/content/banners",
-          label: "Banner/Slider",
-          count: "2",
         },
       ],
     },
     {
-      icon: <WalletCards size={20} />,
+      key: "payment",
       label: "Thanh toán",
-      count: null,
+      icon: <WalletCards size={20} />,
       children: [
         {
-          icon: <WalletCards size={20} />,
-          link: "/admin/payment/methods",
+          key: "payment-methods",
           label: "Phương thức thanh toán",
-          count: "2",
+          icon: <WalletCards size={18} />,
+          link: "/admin/payment/methods",
         },
       ],
     },
     {
-      icon: <Truck size={20} />,
+      key: "shipping",
       label: "Vận chuyển",
-      count: null,
+      icon: <Truck size={20} />,
       children: [
         {
-          icon: <Truck size={20} />,
+          key: "shipping-partners",
+          label: "Đối tác vận chuyển",
+          icon: <Truck size={18} />,
           link: "/admin/shipping/partners",
-          label: "Đối tác vân chuyển",
-          count: "2",
         },
         {
-          icon: <Truck size={20} />,
-          link: "/admin/shipping/payments",
+          key: "shipping-payments",
           label: "Lịch sử thanh toán",
-          count: "2",
+          icon: <Truck size={18} />,
+          link: "/admin/shipping/payments",
         },
       ],
     },
     {
+      key: "settings",
+      label: "Cài đặt",
       icon: <Settings size={20} />,
       link: "/admin/settings/general",
-      label: "Cài đặt",
-      count: null,
     },
   ];
-  const toggleMenu = (key: string) => {
-    setOpenMenus((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
 
-  const isActive = (link: string) =>
-    pathname === link || pathname.startsWith(link + "/");
+  /* ================= HELPERS ================= */
+  const isLinkActive = (link?: string) =>
+    !!link && (pathname === link || pathname.startsWith(link + "/"));
 
+  const isParentActive = (item: MenuItem) =>
+    item.children?.some((child) => isLinkActive(child.link));
+
+  /* ================= AUTO OPEN MENU ================= */
+  useEffect(() => {
+    const initialOpen: Record<string, boolean> = {};
+
+    menuItems.forEach((item) => {
+      if (item.children?.some((child) => isLinkActive(child.link))) {
+        initialOpen[item.key] = true;
+      }
+    });
+
+    dispatch(setOpenMenus(initialOpen));
+  }, [pathname]);
+
+  /* ================= RENDER ================= */
   return (
     <aside
-      className={`${isSidebarOpen ? "w-64" : "w-20"} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-full`}
+      className={`${
+        isSidebarOpen ? "w-64" : "w-20"
+      } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-full`}
     >
-      <div className="p-4 border-b border-gray-100 flex items-center justify-between h-16">
+      {/* ===== HEADER ===== */}
+      <div className="h-16 px-4 flex items-center justify-between border-b">
         {isSidebarOpen && (
-          <Link
-            href="/admin"
-            className="text-xl font-bold text-blue-600 truncate"
-          >
+          <Link href="/admin" className="text-xl font-bold text-blue-600">
             Hoang Nam
           </Link>
         )}
         <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          type="button"
+          onClick={() => dispatch(toggleSidebar())}
           className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
         >
           <Menu size={20} />
         </button>
       </div>
 
+      {/* ===== MENU ===== */}
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-2">
           {menuItems.map((item) => {
-            const active = isActive(item.link || "");
-            const hasChildren = item.children?.length;
+            const parentActive = isParentActive(item);
+            const hasChildren = !!item.children?.length;
 
             return (
-              <li key={item.link}>
+              <li key={item.key}>
                 {/* ===== PARENT ===== */}
-                <button
-                  onClick={() => hasChildren && toggleMenu(item.link || "")}
-                  className={`w-full flex items-center px-3 py-3 rounded-lg transition-colors
-          ${active ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"}
-        `}
-                  data-tooltip-id="sidebar-tooltip"
-                  data-tooltip-content={item.label}
-                >
-                  <span>{item.icon}</span>
+                {hasChildren ? (
+                  <button
+                    type="button"
+                    onClick={() => dispatch(toggleMenu(item.key))}
+                    className={`w-full flex items-center px-3 py-3 rounded-lg transition
+                      ${
+                        parentActive
+                          ? "bg-blue-50 text-blue-600"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }
+                    `}
+                    data-tooltip-id="sidebar-tooltip"
+                    data-tooltip-content={item.label}
+                  >
+                    <span>{item.icon}</span>
 
-                  {isSidebarOpen && (
-                    <div className="flex flex-1 items-center justify-between ml-3">
-                      <span className="text-sm font-medium">{item.label}</span>
-                      {hasChildren && (
+                    {isSidebarOpen && (
+                      <div className="ml-3 flex flex-1 items-center justify-between">
+                        <span className="text-sm font-medium">
+                          {item.label}
+                        </span>
                         <ChevronDown
                           size={16}
                           className={`transition-transform ${
-                            openMenus[item.link || ""] ? "rotate-90" : ""
+                            openMenus[item.key] ? "rotate-90" : ""
                           }`}
                         />
-                      )}
-                    </div>
-                  )}
-                </button>
+                      </div>
+                    )}
+                  </button>
+                ) : (
+                  <Link
+                    href={item.link!}
+                    className={`w-full flex items-center px-3 py-3 rounded-lg transition
+                      ${
+                        isLinkActive(item.link)
+                          ? "bg-blue-50 text-blue-600"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }
+                    `}
+                  >
+                    <span>{item.icon}</span>
+                    {isSidebarOpen && (
+                      <span className="ml-3 text-sm font-medium">
+                        {item.label}
+                      </span>
+                    )}
+                  </Link>
+                )}
 
                 {/* ===== CHILDREN ===== */}
-                {hasChildren && openMenus[item.link || ""] && isSidebarOpen && (
+                {hasChildren && openMenus[item.key] && isSidebarOpen && (
                   <ul className="ml-6 mt-1 space-y-1">
-                    {item.children!.map((child) => {
-                      const childActive = pathname === child.link;
-
-                      return (
-                        <li key={child.link}>
-                          <Link
-                            href={child.link || ""}
-                            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg
-                    ${
-                      childActive
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-gray-600 hover:bg-gray-50"
-                    }
-                  `}
-                          >
-                            <span>{child.icon}</span>
-                            <span>{child.label}</span>
-                          </Link>
-                        </li>
-                      );
-                    })}
+                    {item.children!.map((child) => (
+                      <li key={child.key}>
+                        <Link
+                          href={child.link!}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm
+                            ${
+                              isLinkActive(child.link)
+                                ? "bg-blue-100 text-blue-700"
+                                : "text-gray-600 hover:bg-gray-50"
+                            }
+                          `}
+                        >
+                          <span>{child.icon}</span>
+                          <span>{child.label}</span>
+                        </Link>
+                      </li>
+                    ))}
                   </ul>
                 )}
               </li>
@@ -334,34 +390,34 @@ const Sidebar = () => {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
+      {/* ===== FOOTER ===== */}
+      <div className="border-t p-4 mt-auto">
         {isSidebarOpen ? (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
-              AD
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs border border-blue-200">
+              {initials}
             </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium text-gray-700 truncate">
-                Admin
-              </p>
-              <p className="text-xs text-gray-500 truncate">admin@hn.com</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-700 truncate">{displayName}</p>
+              <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
             </div>
           </div>
         ) : (
-          <div className="w-8 h-8 mx-auto rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
-            A
+          <div className="w-8 h-8 mx-auto rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs border border-blue-200">
+            {singleInitial}
           </div>
         )}
       </div>
+
       {!isSidebarOpen && (
         <Tooltip
           id="sidebar-tooltip"
           place="right"
-          className="!bg-gray-800 !text-white !text-base !px-4 !py-2 !rounded-md"
+          className="!bg-gray-800 !text-white !text-sm !px-3 !py-2 !rounded-md"
         />
       )}
     </aside>
   );
 };
 
-export default Sidebar;
+export default SidebarAdmin;

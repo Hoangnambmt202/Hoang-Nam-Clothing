@@ -26,6 +26,7 @@ import { UpdateImageDto } from './dto/update-image.dto';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  // CREATE PRODUCT
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)

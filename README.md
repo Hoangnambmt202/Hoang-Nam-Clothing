@@ -46,15 +46,15 @@ Dự án hướng đến sự **hiệu quả, ổn định và khả năng mở 
 ---
 👨‍💻 Người thực hiện
 
-Hoang Nam – Fullstack Developer
+Hoang Nam – Fullstack Web Developer
 
 ### 📬 Contact
 
-Tác giả: Nam CodertoData
+Tác giả: Nam CoderToData
 
 Email: nam23062002@gmail.com
 
-Portfolio: https://codertodata.vercel.app
+Portfolio: https://codertodata.dev
 
 👉 Nếu bạn có dự án nào hãy liên hệ với tôi nhé 
 

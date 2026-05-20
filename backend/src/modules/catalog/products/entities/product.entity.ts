@@ -31,6 +31,12 @@ export class Product extends BaseEntity {
   @Column('text', { array: true, default: [] })
   tags: string[];
 
+  @Column('text', { array: true, default: [] })
+  sizes: string[];
+
+  @Column('text', { array: true, default: [] })
+  colors: string[];
+
   @ManyToOne(() => Category, (category) => category.products, {
     onDelete: 'CASCADE',
   })

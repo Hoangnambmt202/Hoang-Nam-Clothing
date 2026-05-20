@@ -92,6 +92,21 @@ export class UsersService {
     });
   }
 
+  async findByPhone(phone: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { phone },
+    });
+  }
+
+  async findByEmailOrPhone(identifier: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: [
+        { email: identifier },
+        { phone: identifier },
+      ],
+    });
+  }
+
   async update(
     id: string,
     updateUserDto: UpdateUserDto,

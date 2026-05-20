@@ -1,7 +1,7 @@
 "use client";
 
-import CartButton from "@/components/user/CartButton";
-import MenuToggle from "@/components/user/MenuToogle";
+import CartButton from "@/components/user/features/cart/CartButton";
+import MenuToggle from "@/components/user/layout/MenuToogle";
 import { Heart, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -29,7 +29,7 @@ const Header = () => {
           Hoang Nam
         </h2>
       </div>
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-8">
         <button className="hidden lg:block text-white text-sm font-semibold tracking-[0.2em] uppercase hover:opacity-60 transition-colors hover:cursor-pointer">
           <Heart />
         </button>

@@ -6,10 +6,13 @@ interface LoaderBlockProps {
   height?: number;
 }
 
-export default function LoaderBlock({ label = "Đang tải...", height = 200 }: LoaderBlockProps) {
+export default function LoaderBlock({
+  label = "Đang tải...",
+  height = 200,
+}: LoaderBlockProps) {
   return (
     <div
-      className="flex flex-col items-center justify-center text-gray-600 bg-gray-50 rounded-xl"
+      className="flex flex-col items-center justify-center bg-transparent text-gray-600 rounded-xl"
       style={{ height }}
     >
       <motion.div

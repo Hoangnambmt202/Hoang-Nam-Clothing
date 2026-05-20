@@ -18,7 +18,11 @@ import {
   Phone,
   MapPin,
 } from "lucide-react";
-
+import Link from "next/link";
+// export const metadata: Metadata = {
+//   title: "Quản lý đơn hàng",
+//   description: "Quản lý đơn hàng",
+// };
 export default function OrdersPage() {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -376,10 +380,13 @@ export default function OrdersPage() {
 
                     {/* Actions */}
                     <div className="flex lg:flex-col gap-2">
-                      <button className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
+                      >
                         <Eye size={18} />
                         <span>Chi tiết</span>
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>

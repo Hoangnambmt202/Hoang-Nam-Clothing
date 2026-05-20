@@ -17,36 +17,13 @@ export class CreateProductDto {
   slug: string;
 
   @IsString()
+  @IsOptional()
   description: string;
-
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Type(() => Number)
-  @Min(0)
-  price: number;
-
-  @IsNumber()
-  @Type(() => Number)
-  @Min(0)
-  stock_quantity: number;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  sizes?: string[];
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  colors?: string[];
-
-  @IsOptional()
-  @IsBoolean()
-  is_available?: boolean;
 
   @IsUUID()
   categoryId: string;
@@ -54,4 +31,8 @@ export class CreateProductDto {
   @IsOptional()
   @IsUUID()
   brandId?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

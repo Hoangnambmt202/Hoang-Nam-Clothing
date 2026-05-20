@@ -1,5 +1,6 @@
 import { Metadata } from "next";
-import HomePageClient from "./HomepageClient";
+import HomePageClient from "./HomePageClient";
+
 export const metadata: Metadata = {
   title: "Hoang Nam | Home",
   description:

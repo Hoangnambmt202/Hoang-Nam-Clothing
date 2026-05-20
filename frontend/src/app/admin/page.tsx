@@ -1,5 +1,3 @@
-"use client";
-
 import {
   DollarSign,
   ShoppingBag,
@@ -12,6 +10,11 @@ import {
   Calendar,
   Download,
 } from "lucide-react";
+import { Metadata } from "next";
+export const metadata: Metadata = {
+  title: "Dashboard | Quản trị",
+  description: "Trang quản trị hệ thống Hoàng Nam Clothing",
+};
 
 export default function AdminDashboard() {
   const stats = [
@@ -196,7 +199,7 @@ export default function AdminDashboard() {
                     <p className="text-slate-600 text-sm font-medium mb-1">
                       {stat.title}
                     </p>
-                    <p className="text-3xl font-bold text-slate-900 mb-2">
+                    <p className="text-2xl font-bold text-slate-900 mb-2">
                       {stat.value}
                     </p>
                     <p className="text-xs text-slate-500">{stat.changeValue}</p>

@@ -45,3 +45,8 @@ coverage/
 *.log
 *.bak
 *.swp
+
+
+implementation_plan.md
+task.md
+walkthrough.md

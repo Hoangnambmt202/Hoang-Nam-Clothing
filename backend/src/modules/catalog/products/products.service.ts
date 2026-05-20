@@ -84,7 +84,9 @@ export class ProductsService {
 
     let query = this.productsRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.category', 'category');
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('product.images', 'images');
 
     // Apply filters
     if (search) {
@@ -321,8 +323,9 @@ export class ProductsService {
 
     const priceQuery = await this.productsRepository
       .createQueryBuilder('product')
-      .select('MIN(COALESCE(product.salePrice, product.price))', 'min')
-      .addSelect('MAX(COALESCE(product.salePrice, product.price))', 'max')
+      .innerJoin('product.variants', 'variant')
+      .select('MIN(variant.price)', 'min')
+      .addSelect('MAX(variant.price)', 'max')
       .where('product.isActive = :isActive', { isActive: true })
       .getRawOne<{ min: string; max: string }>();
 
@@ -339,7 +342,6 @@ export class ProductsService {
       },
     };
   }
-  // products.service.ts
   async createVariant(productId: string, dto: CreateVariantDto) {
     const product = await this.productsRepository.findOne({
       where: { id: productId },
@@ -350,7 +352,9 @@ export class ProductsService {
     }
     console.log('dto', dto);
     const variant = this.variantRepository.create({
-      ...dto, // 👈 đảm bảo map color, size, sku...
+      ...dto,
+      price: dto.price ?? dto.price_modifier ?? 0,
+      stockQuantity: dto.stockQuantity ?? dto.stock_quantity ?? 0,
       productId, // productId từ param
     });
 
@@ -358,7 +362,14 @@ export class ProductsService {
   }
 
   async updateVariant(id: string, dto: UpdateVariantDto) {
-    await this.variantRepository.update(id, dto);
+    const updateData: any = { ...dto };
+    if (dto.price !== undefined) updateData.price = dto.price;
+    else if (dto.price_modifier !== undefined) updateData.price = dto.price_modifier;
+
+    if (dto.stockQuantity !== undefined) updateData.stockQuantity = dto.stockQuantity;
+    else if (dto.stock_quantity !== undefined) updateData.stockQuantity = dto.stock_quantity;
+
+    await this.variantRepository.update(id, updateData);
     return this.variantRepository.findOne({ where: { id } });
   }
 

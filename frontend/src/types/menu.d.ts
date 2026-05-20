@@ -1,4 +1,5 @@
 type MenuItem = {
+  key: string;
   label: string;
   link?: string;
   icon: React.ReactNode;
