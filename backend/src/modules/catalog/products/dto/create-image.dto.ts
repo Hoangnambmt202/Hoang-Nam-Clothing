@@ -2,8 +2,9 @@
 import { IsString, IsUUID, IsBoolean, IsOptional } from 'class-validator';
 
 export class CreateImageDto {
+  @IsOptional()
   @IsUUID()
-  productId: string;
+  productVariantId?: string;
 
   @IsString()
   url: string;

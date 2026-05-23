@@ -100,6 +100,12 @@ const SidebarAdmin = () => {
           link: "/admin/categories",
         },
         {
+          key: "brands",
+          label: "Thương hiệu",
+          icon: <ChartBarStacked size={18} />,
+          link: "/admin/brands",
+        },
+        {
           key: "variants",
           label: "Thuộc tính",
           icon: <ChartBarStacked size={18} />,

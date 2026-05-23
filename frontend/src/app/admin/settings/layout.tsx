@@ -26,7 +26,7 @@ export default function SettingsLayout({
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto grid grid-cols-12 gap-6">
         {/* Sidebar */}
-        <aside className="col-span-3 bg-white border rounded-xl shadow-sm">
+        <aside className="col-span-3 bg-white border rounded-xl shadow-sm h-fit">
           <div className="px-6 py-4 border-b">
             <h2 className="font-semibold text-black">Settings</h2>
             <p className="text-xs text-gray-500">Cấu hình hệ thống</p>

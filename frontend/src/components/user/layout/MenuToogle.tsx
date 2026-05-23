@@ -4,9 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronRight, Home, X, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAppSelector } from "@/store/hooks";
 
 export default function MenuToggle() {
   const [isOpen, setIsOpen] = useState(false);
+  const isScrolled = useAppSelector((s) => s.ui.isScrolled);
   const { user, logout } = useAuth();
 
   return (
@@ -17,8 +19,8 @@ export default function MenuToggle() {
       >
         <svg
           className="w-6 h-6"
-          fill="#fff"
-          stroke="currentColor"
+          fill={isScrolled ? "black" : "white"}
+          stroke={isScrolled ? "black" : "white"}
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -30,9 +32,9 @@ export default function MenuToggle() {
           />
         </svg>
       </button>
- 
+
       {isOpen && (
-        <div className="fixed inset-0 z-51 bg-black/50">
+        <div className="fixed inset-0 z-51 bg-black/50 z-100">
           <nav className="fixed top-0 right-0 flex flex-col h-screen text-black uppercase bg-white shadow-lg w-96 transform transition-transform duration-700 ease-in-out">
             <div className="flex justify-end w-full h-20 py-6 px-14 flex-shrink-0">
               <button onClick={() => setIsOpen(false)}>
@@ -107,7 +109,12 @@ export default function MenuToggle() {
                   <div className="text-sm font-montserrat text-slate-500 font-light flex items-center justify-center gap-2 normal-case">
                     <User size={16} className="text-slate-400" />
                     <span>
-                      Xin chào, <span className="font-semibold text-slate-800">{user.firstName || user.name || user.email}</span>
+                      Xin chào,{" "}
+                      <span className="font-semibold text-slate-800">
+                        {user.firstName + " " + user.lastName ||
+                          user.name ||
+                          user.email}
+                      </span>
                     </span>
                   </div>
                   <div className="flex gap-4 w-full justify-center">

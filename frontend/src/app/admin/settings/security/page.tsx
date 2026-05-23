@@ -29,7 +29,7 @@ export default function SecuritySettingsPage() {
       <div className="px-6 py-4 border-b flex items-center gap-2">
         <Shield className="text-red-600" />
         <div>
-          <h1 className="font-semibold text-lg">Security Settings</h1>
+          <h1 className="font-semibold text-lg text-black">Security Settings</h1>
           <p className="text-sm text-gray-500">
             Cấu hình bảo mật và truy cập hệ thống
           </p>

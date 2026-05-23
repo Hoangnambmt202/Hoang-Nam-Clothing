@@ -11,6 +11,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
+import { Role } from '@/common/enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -48,17 +49,31 @@ export class UsersService {
   async findAll(
     page: number = 1,
     limit: number = 10,
+    role?: Role,
+    search?: string,
   ): Promise<{
     users: UserResponseDto[];
     total: number;
     totalPages: number;
     currentPage: number;
   }> {
-    const [users, total] = await this.usersRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
+    const queryBuilder = this.usersRepository.createQueryBuilder('user');
+
+    if (role) {
+      queryBuilder.andWhere('user.role = :role', { role });
+    }
+
+    if (search) {
+      queryBuilder.andWhere(
+        '(user.email LIKE :search OR user.firstName LIKE :search OR user.lastName LIKE :search OR user.phone LIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    queryBuilder.orderBy('user.createdAt', 'DESC');
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    const [users, total] = await queryBuilder.getManyAndCount();
 
     const userDtos = users.map((user) =>
       plainToClass(UserResponseDto, user, { excludeExtraneousValues: true }),

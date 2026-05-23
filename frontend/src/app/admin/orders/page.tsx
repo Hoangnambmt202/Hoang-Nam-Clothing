@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { orderApi } from "@/lib/api/order";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Eye,
   Search,
@@ -19,94 +21,38 @@ import {
   MapPin,
 } from "lucide-react";
 import Link from "next/link";
-// export const metadata: Metadata = {
-//   title: "Quản lý đơn hàng",
-//   description: "Quản lý đơn hàng",
-// };
+
 export default function OrdersPage() {
+  const { user, accessToken } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({ total: 0, currentPage: 1, totalPages: 1 });
 
-  const MOCK_ORDERS = [
-    {
-      id: "ORD-001",
-      customer: "Nguyễn Văn An",
-      email: "an.nguyen@email.com",
-      phone: "0901234567",
-      address: "123 Lê Lợi, Q1, HCM",
-      date: "2024-02-04",
-      time: "14:30",
-      total: 1250000,
-      status: "pending",
-      items: 3,
-      paymentMethod: "COD",
-    },
-    {
-      id: "ORD-002",
-      customer: "Trần Thị Bình",
-      email: "binh.tran@email.com",
-      phone: "0912345678",
-      address: "456 Nguyễn Huệ, Q1, HCM",
-      date: "2024-02-03",
-      time: "10:15",
-      total: 550000,
-      status: "completed",
-      items: 2,
-      paymentMethod: "Banking",
-    },
-    {
-      id: "ORD-003",
-      customer: "Lê Văn Cường",
-      email: "cuong.le@email.com",
-      phone: "0923456789",
-      address: "789 Trần Hưng Đạo, Q5, HCM",
-      date: "2024-02-01",
-      time: "16:45",
-      total: 2100000,
-      status: "shipping",
-      items: 5,
-      paymentMethod: "Momo",
-    },
-    {
-      id: "ORD-004",
-      customer: "Phạm Thị Dung",
-      email: "dung.pham@email.com",
-      phone: "0934567890",
-      address: "321 Võ Văn Tần, Q3, HCM",
-      date: "2024-01-28",
-      time: "09:20",
-      total: 890000,
-      status: "cancelled",
-      items: 1,
-      paymentMethod: "COD",
-    },
-    {
-      id: "ORD-005",
-      customer: "Hoàng Minh Đức",
-      email: "duc.hoang@email.com",
-      phone: "0945678901",
-      address: "654 Phan Xích Long, Phú Nhuận, HCM",
-      date: "2024-02-04",
-      time: "11:00",
-      total: 1750000,
-      status: "processing",
-      items: 4,
-      paymentMethod: "Banking",
-    },
-    {
-      id: "ORD-006",
-      customer: "Võ Thị Em",
-      email: "em.vo@email.com",
-      phone: "0956789012",
-      address: "987 Cách Mạng Tháng 8, Q10, HCM",
-      date: "2024-02-02",
-      time: "15:30",
-      total: 675000,
-      status: "completed",
-      items: 2,
-      paymentMethod: "Momo",
-    },
-  ];
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const data = await orderApi.getAll({ page: pagination.currentPage, limit: 10 }, accessToken || "");
+        if (data && data.orders) {
+          setOrders(data.orders);
+          setPagination({
+            total: data.total,
+            currentPage: data.currentPage,
+            totalPages: data.totalPages,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch orders", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (accessToken) fetchOrders();
+  }, [pagination.currentPage, accessToken]);
+
+  // MOCK_ORDERS is replaced by state `orders`
 
   const statusConfig = {
     pending: {
@@ -154,36 +100,38 @@ export default function OrdersPage() {
   const stats = [
     {
       label: "Tổng đơn hàng",
-      value: MOCK_ORDERS.length,
+      value: pagination.total,
       gradient: "from-blue-500 to-indigo-600",
       icon: Package,
     },
     {
       label: "Chờ xử lý",
-      value: MOCK_ORDERS.filter((o) => o.status === "pending").length,
+      value: orders.filter((o) => o.status === "PENDING").length,
       gradient: "from-amber-500 to-orange-600",
       icon: Clock,
     },
     {
       label: "Đang giao",
-      value: MOCK_ORDERS.filter((o) => o.status === "shipping").length,
+      value: orders.filter((o) => o.status === "SHIPPED").length,
       gradient: "from-purple-500 to-violet-600",
       icon: Truck,
     },
     {
       label: "Hoàn thành",
-      value: MOCK_ORDERS.filter((o) => o.status === "completed").length,
+      value: orders.filter((o) => o.status === "DELIVERED").length,
       gradient: "from-emerald-500 to-teal-600",
       icon: CheckCircle,
     },
   ];
 
-  const filteredOrders = MOCK_ORDERS.filter((order) => {
+  const filteredOrders = orders.filter((order) => {
+    const orderStatus = order.status?.toLowerCase() || "";
     const matchesFilter =
-      selectedFilter === "all" || order.status === selectedFilter;
+      selectedFilter === "all" || orderStatus === selectedFilter.toLowerCase();
+    const customerName = order.shippingAddress?.recipientName || "Khách Vãng Lai";
     const matchesSearch =
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.toLowerCase().includes(searchTerm.toLowerCase());
+      customerName.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -287,11 +235,24 @@ export default function OrdersPage() {
         </div>
 
         {/* Orders Grid */}
+        {loading ? (
+          <div className="text-center py-12">Loading...</div>
+        ) : (
         <div className="grid grid-cols-1 gap-4">
           {filteredOrders.map((order) => {
+            const statusKey = order.status?.toLowerCase() === 'shipped' ? 'shipping' : 
+                              order.status?.toLowerCase() === 'delivered' ? 'completed' : 
+                              order.status?.toLowerCase() || 'pending';
             const config =
-              statusConfig[order.status as keyof typeof statusConfig];
+              statusConfig[statusKey as keyof typeof statusConfig] || statusConfig.pending;
             const StatusIcon = config.icon;
+            
+            const totalQuantity = order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+            const orderDate = new Date(order.createdAt).toLocaleDateString("vi-VN");
+            const orderTime = new Date(order.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' });
+            const customerName = order.shippingAddress?.recipientName || "Khách Vãng Lai";
+            const customerPhone = order.shippingAddress?.phone || "N/A";
+            const address = `${order.shippingAddress?.addressLine || ''}, ${order.shippingAddress?.ward || ''}, ${order.shippingAddress?.district || ''}, ${order.shippingAddress?.province || ''}`;
 
             return (
               <div
@@ -312,7 +273,7 @@ export default function OrdersPage() {
                           <div>
                             <div className="flex items-center gap-3 mb-2">
                               <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                                {order.id}
+                                {order.id.substring(0, 8).toUpperCase()}...
                               </h3>
                               <span
                                 className={`px-3 py-1.5 ${config.bg} ${config.text} rounded-full text-xs font-bold ring-1 ${config.ring}`}
@@ -323,15 +284,15 @@ export default function OrdersPage() {
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
                               <span className="flex items-center gap-1.5">
                                 <User size={14} />
-                                {order.customer}
+                                {customerName}
                               </span>
                               <span className="flex items-center gap-1.5">
                                 <Phone size={14} />
-                                {order.phone}
+                                {customerPhone}
                               </span>
                               <span className="flex items-center gap-1.5">
                                 <Clock size={14} />
-                                {order.date} - {order.time}
+                                {orderDate} - {orderTime}
                               </span>
                             </div>
                           </div>
@@ -346,16 +307,16 @@ export default function OrdersPage() {
                           size={16}
                           className="text-slate-400 flex-shrink-0"
                         />
-                        <span className="line-clamp-1">{order.address}</span>
+                        <span className="line-clamp-1">{address}</span>
                       </div>
                     </div>
 
                     {/* Order Details */}
                     <div className="lg:border-l border-slate-100 lg:pl-6 flex lg:flex-col justify-between lg:justify-start gap-4 lg:gap-3 lg:min-w-[200px]">
-                      <div className="text-center lg:text-left">
+                        <div className="text-center lg:text-left">
                         <p className="text-sm text-slate-500 mb-1">Tổng tiền</p>
                         <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                          {formatCurrency(order.total)}
+                          {formatCurrency(Number(order.finalAmount))}
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
@@ -364,17 +325,19 @@ export default function OrdersPage() {
                             Sản phẩm
                           </p>
                           <p className="text-lg font-bold text-slate-900">
-                            {order.items}
+                            {totalQuantity}
                           </p>
                         </div>
-                        <div className="text-center">
-                          <p className="text-sm text-slate-500 mb-1">
-                            Thanh toán
-                          </p>
-                          <p className="text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">
-                            {order.paymentMethod}
-                          </p>
-                        </div>
+                        {order.paymentTransactions?.[0] && (
+                          <div className="text-center">
+                            <p className="text-sm text-slate-500 mb-1">
+                              Thanh toán
+                            </p>
+                            <p className="text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">
+                              {order.paymentTransactions[0].paymentMethod || "COD"}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -394,9 +357,10 @@ export default function OrdersPage() {
             );
           })}
         </div>
+        )}
 
         {/* Empty State */}
-        {filteredOrders.length === 0 && (
+        {!loading && filteredOrders.length === 0 && (
           <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-200/60">
             <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-900 mb-2">
@@ -409,26 +373,26 @@ export default function OrdersPage() {
         )}
 
         {/* Pagination */}
-        {filteredOrders.length > 0 && (
+        {!loading && filteredOrders.length > 0 && (
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/60 flex items-center justify-between">
             <div className="text-sm text-slate-600">
               Hiển thị{" "}
               <span className="font-bold text-slate-900">
                 {filteredOrders.length}
               </span>{" "}
-              đơn hàng
+              đơn hàng (Trang {pagination.currentPage}/{pagination.totalPages})
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold text-sm transition-colors">
+              <button 
+                disabled={pagination.currentPage === 1}
+                onClick={() => setPagination({...pagination, currentPage: pagination.currentPage - 1})}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold text-sm transition-colors disabled:opacity-50">
                 Trước
               </button>
-              <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-blue-500/30">
-                1
-              </button>
-              <button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold text-sm transition-colors">
-                2
-              </button>
-              <button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold text-sm transition-colors">
+              <button 
+                disabled={pagination.currentPage === pagination.totalPages}
+                onClick={() => setPagination({...pagination, currentPage: pagination.currentPage + 1})}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold text-sm transition-colors disabled:opacity-50">
                 Sau
               </button>
             </div>

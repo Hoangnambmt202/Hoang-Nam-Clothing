@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { Brand } from './entities/brands.entity';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
+import slugify from 'slugify';
 
 @Injectable()
 export class BrandsService {
@@ -25,16 +26,68 @@ export class BrandsService {
       throw new BadRequestException('Brand already exists');
     }
 
-    const brand = this.brandsRepository.create({
-      ...createBrandDto,
+    const slug = slugify(createBrandDto.name, {
+      lower: true,
+      strict: true,
+      locale: 'vi',
     });
 
-    // slug sẽ được auto-generate khi save nhờ @BeforeInsert()
+    const brand = this.brandsRepository.create({
+      ...createBrandDto,
+      slug,
+    });
+
     return await this.brandsRepository.save(brand);
   }
 
   async findAll(): Promise<Brand[]> {
     return this.brandsRepository.find({ order: { name: 'ASC' } });
+  }
+
+  async findAllWithStats(): Promise<any[]> {
+    const brands = await this.brandsRepository
+      .createQueryBuilder('brand')
+      .leftJoinAndSelect('brand.products', 'product', 'product.isActive = :isActive', { isActive: true })
+      .getMany();
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    return brands.map((brand) => {
+      let thisMonthCount = 0;
+      let lastMonthCount = 0;
+
+      if (brand.products) {
+        brand.products.forEach(product => {
+          if (product.createdAt >= thirtyDaysAgo) {
+            thisMonthCount++;
+          } else if (product.createdAt >= sixtyDaysAgo && product.createdAt < thirtyDaysAgo) {
+            lastMonthCount++;
+          }
+        });
+      }
+
+      let growthRate = 0;
+      if (lastMonthCount === 0) {
+        growthRate = thisMonthCount > 0 ? 100 : 0;
+      } else {
+        growthRate = Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100);
+      }
+
+      return {
+        id: brand.id,
+        name: brand.name,
+        slug: brand.slug,
+        description: brand.description,
+        logo: brand.logo,
+        productCount: brand.products ? brand.products.length : 0,
+        growthRate,
+        createdAt: brand.createdAt
+      };
+    });
   }
 
   async findOne(id: string): Promise<Brand> {

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsPhoneNumber } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class ShippingAddressDto {
   @IsNotEmpty()
@@ -7,8 +7,6 @@ export class ShippingAddressDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsPhoneNumber()
-  // @IsPhoneNumber('VN') // Nếu muốn validate số VN chuẩn
   phone: string;
 
   @IsNotEmpty()

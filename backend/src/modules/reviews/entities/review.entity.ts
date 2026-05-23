@@ -22,4 +22,10 @@ export class Review extends BaseEntity {
 
   @Column({ default: false })
   isApproved: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  replyComment?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  repliedAt?: Date;
 }

@@ -1,59 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Star,
-  Search,
   MessageSquare,
   CheckCircle2,
   XCircle,
   Image as ImageIcon,
-  MoreHorizontal,
-  Filter,
   ArrowUpRight,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store/store";
+import { fetchReviews, updateReviewStatus, replyReview, deleteReview } from "@/store/features/reviewsSlice";
 
 export default function ReviewManagement() {
-  const [filterRating, setFilterRating] = useState("all");
+  const dispatch = useDispatch<AppDispatch>();
+  const { reviews, total, loading } = useSelector((state: RootState) => state.reviews);
+  const { accessToken: token } = useSelector((state: RootState) => state.auth);
 
-  const MOCK_REVIEWS = [
-    {
-      id: 1,
-      customer: "Lê Minh Anh",
-      product: "Áo sơ mi Oxford Classic",
-      productImg: "/product-1.jpg", // Thay bằng link thật
-      rating: 5,
-      comment:
-        "Vải rất đẹp, dày dặn và đứng form. Shop đóng gói cực kỳ cẩn thận. Sẽ ủng hộ lần sau!",
-      date: "04/02/2026",
-      status: "approved",
-      images: [1, 2], // Giả lập khách có chụp ảnh
-    },
-    {
-      id: 2,
-      customer: "Hoàng Thùy Linh",
-      product: "Quần Jean Slim-fit",
-      productImg: "/product-2.jpg",
-      rating: 4,
-      comment:
-        "Quần mặc thoải mái, nhưng giao hàng hơi chậm một chút so với dự kiến.",
-      date: "02/02/2026",
-      status: "pending",
-      images: [],
-    },
-    {
-      id: 3,
-      customer: "Nguyễn Tuấn Kiệt",
-      product: "Áo Hoodie Oversize",
-      productImg: "/product-3.jpg",
-      rating: 2,
-      comment:
-        "Size hơi rộng quá so với mô tả, mình muốn đổi trả mà nhắn tin chưa thấy shop rep.",
-      date: "01/02/2026",
-      status: "rejected",
-      images: [1],
-    },
-  ];
+  const [filterRating, setFilterRating] = useState("all");
+  const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
+  const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (token) {
+      const ratingParams = filterRating !== "all" ? Number(filterRating) : undefined;
+      dispatch(fetchReviews({ token, rating: ratingParams }));
+    }
+  }, [dispatch, token, filterRating]);
+
+  const handleUpdateStatus = (id: string, isApproved: boolean) => {
+    if (token) {
+      dispatch(updateReviewStatus({ token, id, isApproved }));
+    }
+  };
+
+  const handleReplySubmit = (id: string) => {
+    if (token && replyText[id]) {
+      dispatch(replyReview({ token, id, replyComment: replyText[id] }));
+      setActiveReplyId(null);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (token && window.confirm("Bạn có chắc chắn muốn xóa đánh giá này?")) {
+      dispatch(deleteReview({ token, id }));
+    }
+  };
 
   const StarRating = ({ count }: { count: number }) => (
     <div className="flex gap-0.5">
@@ -114,25 +107,34 @@ export default function ReviewManagement() {
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
               Tổng đánh giá
             </p>
-            <h2 className="text-3xl font-black">1,842</h2>
+            <h2 className="text-3xl font-black">{total}</h2>
           </div>
           <div className="bg-white p-5 border border-slate-200 rounded-xl">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
               Chờ duyệt
             </p>
-            <h2 className="text-3xl font-black text-orange-500">12</h2>
+            <h2 className="text-3xl font-black text-orange-500">
+              {reviews.filter(r => !r.isApproved).length}
+            </h2>
           </div>
           <div className="bg-white p-5 border border-slate-200 rounded-xl">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-              Phản hồi tháng này
+              Đã duyệt
             </p>
-            <h2 className="text-3xl font-black text-green-400">+156</h2>
+            <h2 className="text-3xl font-black text-emerald-500">
+              {reviews.filter(r => r.isApproved).length}
+            </h2>
           </div>
         </div>
 
         {/* Reviews List */}
-        <div className="space-y-4">
-          {MOCK_REVIEWS.map((review) => (
+        <div className="space-y-4 relative min-h-[300px]">
+          {loading && (
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-slate-200 border-t-black rounded-full animate-spin"></div>
+            </div>
+          )}
+          {reviews.map((review) => (
             <div
               key={review.id}
               className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition-shadow"
@@ -142,19 +144,23 @@ export default function ReviewManagement() {
                 <div className="md:w-1/4 space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 border border-slate-100">
-                      <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
-                        <ImageIcon size={20} />
-                      </div>
+                      {review.product?.images?.[0]?.url ? (
+                        <img src={review.product.images[0].url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
+                          <ImageIcon size={20} />
+                        </div>
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-slate-400 uppercase truncate">
-                        {review.product}
+                        {review.product?.name || "Sản phẩm"}
                       </p>
                       <p className="font-bold text-sm truncate">
-                        {review.customer}
+                        {review.user?.firstName} {review.user?.lastName}
                       </p>
                       <p className="text-[10px] text-slate-400">
-                        {review.date}
+                        {new Date(review.createdAt).toLocaleDateString("vi-VN")}
                       </p>
                     </div>
                   </div>
@@ -167,16 +173,36 @@ export default function ReviewManagement() {
                     "{review.comment}"
                   </p>
 
-                  {review.images.length > 0 && (
-                    <div className="flex gap-2 pt-2">
-                      {review.images.map((_, i) => (
-                        <div
-                          key={i}
-                          className="w-14 h-14 bg-slate-100 border border-slate-200 rounded-lg flex items-center justify-center text-slate-400"
+                  {review.replyComment && (
+                    <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                      <p className="text-xs font-bold text-slate-500 mb-1">Shop phản hồi:</p>
+                      <p className="text-sm text-slate-700">{review.replyComment}</p>
+                    </div>
+                  )}
+
+                  {activeReplyId === review.id && (
+                    <div className="mt-3">
+                      <textarea
+                        className="w-full p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-black"
+                        rows={3}
+                        placeholder="Nhập phản hồi của shop..."
+                        value={replyText[review.id] || ""}
+                        onChange={(e) => setReplyText({ ...replyText, [review.id]: e.target.value })}
+                      ></textarea>
+                      <div className="flex justify-end gap-2 mt-2">
+                        <button
+                          onClick={() => setActiveReplyId(null)}
+                          className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-black transition-colors"
                         >
-                          <ImageIcon size={16} />
-                        </div>
-                      ))}
+                          Hủy
+                        </button>
+                        <button
+                          onClick={() => handleReplySubmit(review.id)}
+                          className="px-3 py-1.5 bg-black text-white text-xs font-bold rounded hover:bg-slate-800 transition-colors"
+                        >
+                          Gửi phản hồi
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -184,45 +210,48 @@ export default function ReviewManagement() {
                 {/* Status & Actions */}
                 <div className="md:w-1/5 flex flex-col justify-between items-end gap-4">
                   <div className="flex items-center gap-2">
-                    {review.status === "approved" && (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded tracking-widest uppercase">
-                        <CheckCircle2 size={12} /> Duyệt
+                    {review.isApproved ? (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded tracking-widest uppercase cursor-pointer" onClick={() => handleUpdateStatus(review.id, false)}>
+                        <CheckCircle2 size={12} /> Đã Duyệt
                       </span>
-                    )}
-                    {review.status === "pending" && (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded tracking-widest uppercase">
+                    ) : (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded tracking-widest uppercase cursor-pointer" onClick={() => handleUpdateStatus(review.id, true)}>
                         Chờ duyệt
-                      </span>
-                    )}
-                    {review.status === "rejected" && (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded tracking-widest uppercase">
-                        Từ chối
                       </span>
                     )}
                   </div>
 
                   <div className="flex gap-2">
-                    <button className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors group">
+                    <button 
+                      onClick={() => setActiveReplyId(review.id)}
+                      className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors group"
+                      title="Phản hồi"
+                    >
                       <MessageSquare
                         size={16}
                         className="text-slate-400 group-hover:text-black"
                       />
                     </button>
-                    <button className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-black transition-colors">
-                      Phản hồi
+                    <button 
+                      onClick={() => handleDelete(review.id)}
+                      className="p-2 border border-slate-200 rounded-lg hover:bg-red-50 transition-colors group"
+                      title="Xóa"
+                    >
+                      <XCircle
+                        size={16}
+                        className="text-slate-400 group-hover:text-red-500"
+                      />
                     </button>
                   </div>
                 </div>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Footer Info */}
-        <div className="text-center py-4">
-          <button className="text-xs font-bold text-slate-400 hover:text-black transition-colors flex items-center gap-1 mx-auto">
-            Xem thêm đánh giá cũ hơn <ArrowUpRight size={14} />
-          </button>
+          {reviews.length === 0 && !loading && (
+             <div className="text-center py-8 text-slate-500">
+               Không có đánh giá nào.
+             </div>
+          )}
         </div>
       </div>
     </div>

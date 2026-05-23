@@ -45,6 +45,7 @@ export function useAuth() {
   return {
     user: data || user,
     accessToken,
+    isInitialized,
     login,
     register,
     refreshToken,

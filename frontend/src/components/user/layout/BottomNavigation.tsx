@@ -47,7 +47,7 @@ export default function BottomNavigation() {
     router.push(navItems.find((item) => item.id === id)?.href || "/");
   };
   return (
-    <div className="fixed bottom-10 left-0 right-0 z-50">
+    <div className="fixed bottom-4 left-0 right-0 z-40">
       <div className="relative bg-transparent">
         <div className="max-w-screen-sm mx-auto px-4">
           <div className="flex items-center justify-around py-2">

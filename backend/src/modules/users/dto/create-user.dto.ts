@@ -32,4 +32,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(Role)
   role?: Role;
+
+  @IsOptional()
+  isActive?: boolean;
 }

@@ -1,49 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Filter, Clock, User, ShieldCheck } from "lucide-react";
-
-const activityLogsMock = [
-  {
-    id: 1,
-    user: "Nguyễn Văn A",
-    action: "Tạo sản phẩm",
-    target: "Áo Polo Nam",
-    ip: "192.168.1.10",
-    createdAt: "2026-02-05 10:15",
-    type: "CREATE",
-  },
-  {
-    id: 2,
-    user: "Trần Thị B",
-    action: "Cập nhật tồn kho",
-    target: "HN-POLO-BLK-L",
-    ip: "192.168.1.22",
-    createdAt: "2026-02-05 09:40",
-    type: "UPDATE",
-  },
-  {
-    id: 3,
-    user: "Nguyễn Văn A",
-    action: "Vô hiệu nhân viên",
-    target: "Lê Văn C",
-    ip: "192.168.1.10",
-    createdAt: "2026-02-04 18:30",
-    type: "SECURITY",
-  },
-];
+import { useState, useEffect } from "react";
+import { Search } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store/store";
+import { fetchSystemLogs } from "@/store/features/systemLogsSlice";
 
 export default function ActivityLogPage() {
-  const [search, setSearch] = useState("");
+  const dispatch = useDispatch<AppDispatch>();
+  const { logs, total, loading } = useSelector((state: RootState) => state.systemLogs);
+  const { accessToken: token } = useSelector((state: RootState) => state.auth);
 
-  const filtered = activityLogsMock.filter(
-    (log) =>
-      log.user.toLowerCase().includes(search.toLowerCase()) ||
-      log.action.toLowerCase().includes(search.toLowerCase()) ||
-      log.target.toLowerCase().includes(search.toLowerCase()) ||
-      log.ip.toLowerCase().includes(search.toLowerCase()) ||
-      log.createdAt.toLowerCase().includes(search.toLowerCase()),
-  );
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("");
+
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchSystemLogs({ token, search, type: filterType || undefined }));
+    }
+  }, [dispatch, token, search, filterType]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8 text-gray-800">
@@ -51,7 +26,7 @@ export default function ActivityLogPage() {
       <div className="max-w-7xl mx-auto mb-8">
         <h1 className="text-2xl font-bold tracking-tight">Nhật ký hoạt động</h1>
         <p className="text-sm text-gray-500">
-          Theo dõi toàn bộ thao tác người dùng trong hệ thống
+          Theo dõi toàn bộ thao tác người dùng trong hệ thống ({total} bản ghi)
         </p>
       </div>
 
@@ -71,24 +46,27 @@ export default function ActivityLogPage() {
             />
           </div>
 
-          <select className="px-3 py-2 border border-gray-200 rounded-md text-sm">
+          <select 
+            className="px-3 py-2 border border-gray-200 rounded-md text-sm"
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+          >
             <option value="">Tất cả hành động</option>
-            <option value="CREATE">Tạo</option>
+            <option value="CREATE">Tạo mới</option>
             <option value="UPDATE">Cập nhật</option>
             <option value="DELETE">Xoá</option>
             <option value="SECURITY">Bảo mật</option>
-          </select>
-
-          <select className="px-3 py-2 border border-gray-200 rounded-md text-sm">
-            <option value="">Tất cả người dùng</option>
-            <option value="admin">Admin</option>
-            <option value="staff">Staff</option>
           </select>
         </div>
       </div>
 
       {/* Table */}
-      <div className="max-w-7xl mx-auto bg-white border border-gray-200 rounded-xl shadow-sm">
+      <div className="max-w-7xl mx-auto bg-white border border-gray-200 rounded-xl shadow-sm relative min-h-[300px]">
+        {loading && (
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+          </div>
+        )}
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-xs uppercase text-gray-500">
             <tr>
@@ -96,19 +74,33 @@ export default function ActivityLogPage() {
               <th className="px-6 py-4 text-left">Người dùng</th>
               <th className="px-6 py-4 text-left">Hành động</th>
               <th className="px-6 py-4 text-left">Đối tượng</th>
+              <th className="px-6 py-4">Loại</th>
               <th className="px-6 py-4">IP</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {filtered.map((log) => (
+            {logs.map((log) => (
               <tr key={log.id} className="hover:bg-gray-50 transition">
-                <td className="px-6 py-4 text-left">{log.createdAt}</td>
-                <td className="px-6 py-4 text-left">{log.user}</td>
+                <td className="px-6 py-4 text-left">
+                  {new Date(log.createdAt).toLocaleString("vi-VN")}
+                </td>
+                <td className="px-6 py-4 text-left">
+                  <div className="font-medium text-slate-800">{log.userEmail}</div>
+                  <div className="text-xs text-slate-400">{log.userId?.substring(0, 8)}</div>
+                </td>
                 <td className="px-6 py-4 text-left">{log.action}</td>
-                <td className="px-6 py-4 text-left">{log.target}</td>
-                <td className="px-6 py-4 text-left">{log.ip}</td>
+                <td className="px-6 py-4 text-left">{log.target || "-"}</td>
+                <td className="px-6 py-4 text-center"><ActionBadge type={log.type} /></td>
+                <td className="px-6 py-4 text-center text-xs text-slate-500">{log.ip || "Unknown"}</td>
               </tr>
             ))}
+            {logs.length === 0 && !loading && (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                    Không tìm thấy nhật ký nào.
+                  </td>
+                </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -118,15 +110,15 @@ export default function ActivityLogPage() {
 
 /* ---------- Components ---------- */
 
-const ActionBadge = ({ type }: any) => {
-  const map: any = {
+const ActionBadge = ({ type }: { type: string }) => {
+  const map: { [key: string]: string } = {
     CREATE: "bg-green-100 text-green-700",
     UPDATE: "bg-blue-100 text-blue-700",
     DELETE: "bg-red-100 text-red-700",
     SECURITY: "bg-purple-100 text-purple-700",
   };
   return (
-    <span className={`px-2 py-1 rounded-md text-xs font-semibold ${map[type]}`}>
+    <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider ${map[type] || "bg-gray-100 text-gray-700"}`}>
       {type}
     </span>
   );

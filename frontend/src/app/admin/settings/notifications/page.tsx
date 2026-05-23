@@ -24,7 +24,7 @@ export default function NotificationSettingsPage() {
       <div className="px-6 py-4 border-b flex items-center gap-2">
         <Bell className="text-blue-600" />
         <div>
-          <h1 className="font-semibold text-lg">Notification Settings</h1>
+          <h1 className="font-semibold text-lg text-black">Notification Settings</h1>
           <p className="text-sm text-gray-500">
             Cấu hình thông báo cho hệ thống
           </p>

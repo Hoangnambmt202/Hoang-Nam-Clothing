@@ -22,29 +22,22 @@ import Image from "next/image";
 import { productApi } from "@/lib/api/product";
 import { useAuth } from "@/hooks/useAuth";
 import { showToast } from "nextjs-toast-notify";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchProducts, fetchProductStats } from "@/store/features/productsSlice";
+import { fetchCategories } from "@/store/features/categoriesSlice";
 
 export default function ProductsPage() {
   const { accessToken } = useAuth();
+  const dispatch = useAppDispatch();
   
-  const [products, setProducts] = useState<any[]>([]);
-  const [totalProducts, setTotalProducts] = useState(0);
+  const { products, total: totalProducts, totalPages, stats, loading } = useAppSelector((state) => state.products);
+  const { categories } = useAppSelector((state) => state.categories);
+  
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  
-  const [categories, setCategories] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>({
-    total: 0,
-    active: 0,
-    inactive: 0,
-    outOfStock: 0,
-    lowStock: 0,
-  });
 
   // Delete product state
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -83,66 +76,33 @@ export default function ProductsPage() {
   };
 
   // Fetch product list
-  const loadProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params: any = {
-        page: currentPage,
-        limit: 10,
-      };
+  const loadProducts = useCallback(() => {
+    const params: any = {
+      page: currentPage,
+      limit: 10,
+    };
 
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      if (filterCategory !== "all") {
-        params.categoryId = filterCategory;
-      }
-      if (filterStatus !== "all") {
-        if (filterStatus === "active") params.isActive = true;
-        if (filterStatus === "draft") params.isActive = false;
-        // In-stock / out-of-stock logic can also be passed if supported,
-        // otherwise we filter on client or send specific flags
-      }
-
-      const res = await productApi.getProducts(params);
-      if (res) {
-        setProducts(res.products || []);
-        setTotalProducts(res.total || 0);
-        setTotalPages(res.totalPages || 1);
-      }
-    } catch (error) {
-      console.error("Lỗi khi tải danh sách sản phẩm:", error);
-      showToast.error("Không thể tải danh sách sản phẩm.", { duration: 2000 });
-    } finally {
-      setLoading(false);
+    if (searchTerm) {
+      params.search = searchTerm;
     }
-  }, [currentPage, searchTerm, filterCategory, filterStatus]);
+    if (filterCategory !== "all") {
+      params.categoryId = filterCategory;
+    }
+    if (filterStatus !== "all") {
+      if (filterStatus === "active") params.isActive = true;
+      if (filterStatus === "draft") params.isActive = false;
+    }
+
+    dispatch(fetchProducts(params));
+  }, [currentPage, searchTerm, filterCategory, filterStatus, dispatch]);
 
   // Fetch filters (categories) & stats
   useEffect(() => {
-    async function loadMetadata() {
-      try {
-        const filters = await productApi.getFilters();
-        if (filters && filters.categories) {
-          setCategories(filters.categories);
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải filters:", err);
-      }
-
-      if (accessToken) {
-        try {
-          const statistics = await productApi.getProductStats(accessToken);
-          if (statistics) {
-            setStats(statistics);
-          }
-        } catch (err) {
-          console.error("Lỗi khi tải thống kê:", err);
-        }
-      }
+    dispatch(fetchCategories());
+    if (accessToken) {
+      dispatch(fetchProductStats(accessToken));
     }
-    loadMetadata();
-  }, [accessToken, loadProducts]);
+  }, [accessToken, dispatch]);
 
   // Load products when filters or page changes
   useEffect(() => {
@@ -165,8 +125,7 @@ export default function ProductsPage() {
       setDeletingId(null);
       // Reload products & stats
       loadProducts();
-      const statistics = await productApi.getProductStats(accessToken);
-      if (statistics) setStats(statistics);
+      dispatch(fetchProductStats(accessToken));
     } catch (err) {
       console.error("Lỗi khi xóa sản phẩm:", err);
       showToast.error("Không thể xóa sản phẩm này.", { duration: 2000 });
@@ -184,8 +143,9 @@ export default function ProductsPage() {
 
   // Helper to map DB values to client UI config
   const getProductDisplayInfo = (product: any) => {
-    const mainImg = product.images?.find((img: any) => img.isMain || img.is_thumbnail)?.url || 
-                    product.images?.[0]?.url || 
+    const allVariantImages = product.variants?.flatMap((v: any) => v.images || []) || [];
+    const mainImg = allVariantImages.find((img: any) => img.isThumbnail || img.is_thumbnail)?.url || 
+                    allVariantImages?.[0]?.url || 
                     "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070";
     
     // Sum stock across variants
@@ -425,20 +385,19 @@ export default function ProductsPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="absolute bottom-3 left-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Link 
-                          href={`/products/${product.id}`}
-                          target="_blank"
+                          href={`/admin/products/${product.id}`}
                           className="flex-1 py-2 bg-white/90 backdrop-blur-sm hover:bg-white text-slate-900 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-1.5"
                         >
                           <Eye size={16} />
                           Xem chi tiết
                         </Link>
-                        <button 
-                          onClick={() => showToast.info("Chỉnh sửa variant trong tab sản phẩm.", { duration: 2000 })}
+                        <Link 
+                          href={`/admin/products/${product.id}/edit`}
                           className="flex-1 py-2 bg-white/90 backdrop-blur-sm hover:bg-white text-slate-900 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-1.5"
                         >
                           <Edit size={16} />
                           Sửa
-                        </button>
+                        </Link>
                       </div>
                     </div>
 
@@ -459,9 +418,11 @@ export default function ProductsPage() {
                         </div>
                       </div>
 
-                      <h3 className="font-bold text-slate-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors flex-1">
-                        {product.name}
-                      </h3>
+                      <Link href={`/admin/products/${product.id}`} className="block">
+                        <h3 className="font-bold text-slate-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors flex-1">
+                          {product.name}
+                        </h3>
+                      </Link>
 
                       <div className="flex items-baseline gap-2 mb-4">
                         {salePrice ? (
@@ -596,20 +557,19 @@ export default function ProductsPage() {
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-2">
                             <Link 
-                              href={`/products/${product.id}`}
-                              target="_blank"
+                              href={`/admin/products/${product.id}`}
                               className="p-2 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-lg transition-colors"
                               title="Xem chi tiết"
                             >
                               <Eye size={18} />
                             </Link>
-                            <button 
-                              onClick={() => showToast.info("Chỉnh sửa variant trong tab sản phẩm.", { duration: 2000 })}
+                            <Link 
+                              href={`/admin/products/${product.id}/edit`}
                               className="p-2 hover:bg-orange-50 text-slate-400 hover:text-orange-600 rounded-lg transition-colors"
                               title="Sửa"
                             >
                               <Edit size={18} />
-                            </button>
+                            </Link>
                             <button 
                               onClick={() => handleDeleteClick(product.id)}
                               className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors"

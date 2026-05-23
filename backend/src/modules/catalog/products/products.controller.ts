@@ -62,6 +62,11 @@ export class ProductsController {
     return this.productsService.getProductStats();
   }
 
+  @Get('variants/all')
+  findAllVariants() {
+    return this.productsService.findAllVariants();
+  }
+
   // GET ONE PRODUCT BY ID
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -125,9 +130,9 @@ export class ProductsController {
   }
 
   // Images
-  @Post(':id/images')
-  createImage(@Param('id') productId: string, @Body() dto: CreateImageDto) {
-    return this.productsService.createImage({ ...dto, productId });
+  @Post('variants/:variantId/images')
+  createImage(@Param('variantId') variantId: string, @Body() dto: CreateImageDto) {
+    return this.productsService.createImage({ ...dto, productVariantId: variantId });
   }
 
   @Patch('images/:imageId')

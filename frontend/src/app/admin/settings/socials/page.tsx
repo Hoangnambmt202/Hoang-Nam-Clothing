@@ -30,7 +30,7 @@ export default function SocialSettingsPage() {
       <div className="px-6 py-4 border-b flex items-center gap-2">
         <Share2 className="text-pink-600" />
         <div>
-          <h1 className="font-semibold text-lg">Social Settings</h1>
+          <h1 className="font-semibold text-lg text-black">Social Settings</h1>
           <p className="text-sm text-gray-500">Quản lý mạng xã hội & chia sẻ</p>
         </div>
       </div>

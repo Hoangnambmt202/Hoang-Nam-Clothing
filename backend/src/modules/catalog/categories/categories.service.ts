@@ -57,9 +57,43 @@ export class CategoriesService {
       )
       .getMany();
 
-    return categories.map((category) => ({
-      ...category,
-    }));
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    return categories.map((category) => {
+      let thisMonthCount = 0;
+      let lastMonthCount = 0;
+
+      if (category.products) {
+        category.products.forEach(product => {
+          if (product.createdAt >= thirtyDaysAgo) {
+            thisMonthCount++;
+          } else if (product.createdAt >= sixtyDaysAgo && product.createdAt < thirtyDaysAgo) {
+            lastMonthCount++;
+          }
+        });
+      }
+
+      let growthRate = 0;
+      if (lastMonthCount === 0) {
+        growthRate = thisMonthCount > 0 ? 100 : 0;
+      } else {
+        growthRate = Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100);
+      }
+
+      return {
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        productCount: (category as any).productCount || 0,
+        growthRate,
+        createdAt: category.createdAt
+      };
+    });
   }
 
   async findOne(id: string): Promise<Category> {

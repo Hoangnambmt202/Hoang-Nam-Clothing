@@ -29,6 +29,11 @@ export class CreateProductDto {
   categoryId: string;
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  categoryIds?: string[];
+
+  @IsOptional()
   @IsUUID()
   brandId?: string;
 
@@ -36,3 +41,4 @@ export class CreateProductDto {
   @IsBoolean()
   isActive?: boolean;
 }
+

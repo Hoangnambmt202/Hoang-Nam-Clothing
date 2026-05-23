@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   Plus,
@@ -15,85 +15,37 @@ import {
   List,
   Package,
   TrendingUp,
+  Loader2,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchCategories } from "@/store/features/categoriesSlice";
 
-const MOCK_CATEGORIES = [
-  {
-    id: 1,
-    name: "Áo Thun",
-    slug: "ao-thun",
-    productCount: 245,
-    status: "active",
-    description: "Các loại áo thun nam nữ, cotton, oversize...",
-    color: "from-blue-500 to-cyan-600",
-    revenue: "45.2M đ",
-    growth: "+12.5%",
-  },
-  {
-    id: 2,
-    name: "Quần Jeans",
-    slug: "quan-jeans",
-    productCount: 132,
-    status: "active",
-    description: "Quần jeans skinny, slim fit, regular...",
-    color: "from-indigo-500 to-purple-600",
-    revenue: "38.7M đ",
-    growth: "+8.3%",
-  },
-  {
-    id: 3,
-    name: "Áo Khoác",
-    slug: "ao-khoac",
-    productCount: 98,
-    status: "active",
-    description: "Jacket, Bomber, Hoodie, Cardigan...",
-    color: "from-orange-500 to-red-600",
-    revenue: "52.1M đ",
-    growth: "+15.7%",
-  },
-  {
-    id: 4,
-    name: "Phụ Kiện",
-    slug: "phu-kien",
-    productCount: 356,
-    status: "hidden",
-    description: "Mũ, nón, tất, thắt lưng...",
-    color: "from-emerald-500 to-teal-600",
-    revenue: "28.4M đ",
-    growth: "-3.2%",
-  },
-  {
-    id: 5,
-    name: "Giày Dép",
-    slug: "giay-dep",
-    productCount: 189,
-    status: "active",
-    description: "Sneakers, sandals, boots...",
-    color: "from-pink-500 to-rose-600",
-    revenue: "67.8M đ",
-    growth: "+22.1%",
-  },
-  {
-    id: 6,
-    name: "Đầm Váy",
-    slug: "dam-vay",
-    productCount: 167,
-    status: "active",
-    description: "Váy maxi, váy ngắn, đầm dạ hội...",
-    color: "from-violet-500 to-purple-600",
-    revenue: "41.3M đ",
-    growth: "+9.8%",
-  },
-];
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  productCount?: number;
+  status?: string;
+  description?: string;
+  color?: string;
+  revenue?: string;
+  growth?: string;
+}
 
 export default function CategoriesPage() {
+  const dispatch = useAppDispatch();
+  const { categories, loading } = useAppSelector((state) => state.categories);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "hidden">(
-    "all",
-  );
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "hidden">("all");
+  const { accessToken } = useAuth();
 
-  const filteredCategories = MOCK_CATEGORIES.filter((cat) => {
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
+  const filteredCategories = categories.filter((cat) => {
     const matchesSearch =
       cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cat.slug.toLowerCase().includes(searchTerm.toLowerCase());
@@ -101,13 +53,24 @@ export default function CategoriesPage() {
     return matchesSearch && matchesFilter;
   });
 
-  const totalProducts = MOCK_CATEGORIES.reduce(
-    (sum, cat) => sum + cat.productCount,
+  const totalProducts = categories.reduce(
+    (sum, cat) => sum + (cat.productCount || 0),
     0,
   );
-  const activeCategories = MOCK_CATEGORIES.filter(
+  const activeCategories = categories.filter(
     (cat) => cat.status === "active",
   ).length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/40 p-6 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+          <span className="text-slate-500 font-medium">Đang tải danh mục...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/40 p-6">
@@ -139,7 +102,7 @@ export default function CategoriesPage() {
                   Tổng danh mục
                 </p>
                 <p className="text-3xl font-bold text-slate-900">
-                  {MOCK_CATEGORIES.length}
+                  {categories.length}
                 </p>
               </div>
               <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
@@ -179,7 +142,7 @@ export default function CategoriesPage() {
                   Trung bình/danh mục
                 </p>
                 <p className="text-3xl font-bold text-slate-900">
-                  {Math.round(totalProducts / MOCK_CATEGORIES.length)}
+                  {categories.length ? Math.round(totalProducts / categories.length) : 0}
                 </p>
               </div>
               <div className="p-4 bg-gradient-to-br from-orange-500 to-pink-600 rounded-xl shadow-lg">
@@ -325,12 +288,12 @@ export default function CategoriesPage() {
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                     <div
                       className={`flex items-center gap-1 text-sm font-semibold ${
-                        cat.growth.startsWith("+")
+                        (cat.growth || "").startsWith("+")
                           ? "text-emerald-600"
                           : "text-red-600"
                       }`}
                     >
-                      {cat.growth.startsWith("+") ? "↑" : "↓"} {cat.growth}
+                      {(cat.growth || "").startsWith("+") ? "↑" : "↓"} {cat.growth || "0%"}
                     </div>
                     <div className="flex gap-2">
                       <button className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors">
@@ -415,12 +378,12 @@ export default function CategoriesPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`px-3 py-1.5 rounded-full text-xs font-bold ${
-                          cat.growth.startsWith("+")
+                          (cat.growth || "").startsWith("+")
                             ? "bg-emerald-100 text-emerald-700"
                             : "bg-red-100 text-red-700"
                         }`}
                       >
-                        {cat.growth}
+                        {cat.growth || "0%"}
                       </span>
                     </td>
                     <td className="px-6 py-4">

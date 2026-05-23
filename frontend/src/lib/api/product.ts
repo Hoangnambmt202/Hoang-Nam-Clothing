@@ -83,11 +83,50 @@ export const productApi = {
   },
 
   // CREATE IMAGE
-  createImage: async (productId: string, data: any, token: string) => {
-    return await apiFetch(`/products/${productId}/images`, {
+  createImage: async (variantId: string, data: any, token: string) => {
+    return await apiFetch(`/products/variants/${variantId}/images`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify(data),
+    });
+  },
+
+  // UPDATE VARIANT
+  updateVariant: async (variantId: string, data: any, token: string) => {
+    return await apiFetch(`/products/variants/${variantId}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  },
+
+  // GET ALL VARIANTS
+  getAllVariants: async () => {
+    return await apiFetch("/products/variants/all");
+  },
+
+  // DELETE VARIANT
+  deleteVariant: async (variantId: string, token: string) => {
+    return await apiFetch(`/products/variants/${variantId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  // UPDATE IMAGE
+  updateImage: async (imageId: string, data: any, token: string) => {
+    return await apiFetch(`/products/images/${imageId}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  },
+
+  // DELETE IMAGE
+  deleteImage: async (imageId: string, token: string) => {
+    return await apiFetch(`/products/images/${imageId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
     });
   },
 };

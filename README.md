@@ -17,12 +17,27 @@ Dự án hướng đến sự **hiệu quả, ổn định và khả năng mở 
 ---
 
 ## ✨ Tính năng nổi bật
-- 👗 **Quản lý sản phẩm**: Admin có thể thêm, sửa, xóa sản phẩm (hình ảnh, size, màu sắc, mô tả).  
-- 🛒 **Giỏ hàng & Thanh toán**: Trải nghiệm mua sắm mượt mà, hỗ trợ nhiều phương thức thanh toán an toàn.  
+- 👗 **Quản trị Catalog (Admin Panel)**: 
+  - CRUD hoàn chỉnh và tích hợp API thực tế cho Sản phẩm (Products), Danh mục (Categories), và Thương hiệu (Brands).
+  - Hỗ trợ tạo và quản lý Biến thể (Variants) với tự động sinh SKU, quản lý kho, giá linh hoạt.
+  - Tích hợp Upload hình ảnh sản phẩm lên **Cloudinary**.
+- 🛒 **Giỏ hàng Thông minh (Shopping Cart)**:
+  - Quản lý trạng thái giỏ hàng nội bộ bằng **Redux Toolkit** & LocalStorage.
+  - Hỗ trợ thay đổi số lượng, **chọn lại loại biến thể (màu sắc/kích cỡ) trực tiếp trong giỏ hàng**.
+  - Hiển thị hóa đơn chi tiết, áp dụng mã giảm giá và chọn Quà tặng đi kèm.
 - 🔎 **Tìm kiếm & Lọc sản phẩm**: Bộ lọc nâng cao giúp tìm sản phẩm theo danh mục, giá, size, màu sắc.  
-- 📱 **Thiết kế Responsive**: Hoạt động tốt trên desktop, tablet và mobile.  
-- 🔐 **Xác thực người dùng**: Đăng ký, đăng nhập và quản lý hồ sơ cá nhân an toàn.  
-- 🛠️ **Trang quản trị (Admin Panel)**: Quản lý sản phẩm, đơn hàng, khách hàng và chương trình khuyến mãi.  
+- 💳 **Thanh toán & Vận chuyển (Checkout)**:
+  - Hỗ trợ **Guest Checkout** (mua không cần tài khoản) với tự động tạo tài khoản ngầm.
+  - Tích hợp API Tỉnh/Thành/Phường/Xã thực tế.
+  - **Quản lý Shipping Methods & Payment Methods**:
+    - Hiển thị động các phương thức thanh toán (COD, VNPAY, v.v.) và phương thức vận chuyển theo API.
+    - Giao diện cấu hình/bật/tắt thanh toán, vận chuyển dành riêng cho Admin.
+  - Quản lý State bằng Redux và tự động làm sạch giỏ hàng khi đặt thành công.
+- 📦 **Quản lý Đơn hàng (Order Management)**:
+  - **Giao diện Admin chuyên nghiệp**: Theo dõi, tìm kiếm, lọc đơn hàng theo trạng thái (Pending, Processing, Shipped, Delivered, Cancelled). Quản lý chi tiết từng Order Item liên kết chặt chẽ với Product Variants.
+  - **Giao diện User**: Trang `Đơn hàng của tôi` giúp người dùng dễ dàng theo dõi lịch sử, trạng thái đơn hàng, xem chi tiết và hủy đơn khi đang chờ xử lý.
+- 📱 **Thiết kế Responsive**: Giao diện sang trọng (UI Glassmorphism), hoạt động tốt trên desktop, tablet và mobile.  
+- 🔐 **Xác thực người dùng**: Đăng ký, đăng nhập (JWT) và phân quyền (Admin/User).  
 
 ---
 

@@ -27,6 +27,12 @@ export class UserResponseDto {
   role: Role;
 
   @Expose()
+  avatarUrl?: string;
+
+  @Expose()
+  isActive: boolean;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

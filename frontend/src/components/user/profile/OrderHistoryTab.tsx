@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { userApi } from "@/lib/api/user";
+import { orderApi } from "@/lib/api/order";
 import { Package, ChevronRight, Loader2, Clock, CheckCircle, XCircle, Truck } from "lucide-react";
 import Link from "next/link";
 
@@ -90,8 +90,17 @@ const OrderHistoryTab = () => {
     if (!token) return;
     (async () => {
       try {
-        const data = await userApi.getOrders(token);
-        setOrders(data?.orders ?? []);
+        const data = await orderApi.getMyOrders({ page: 1, limit: 100 }, token);
+        const mappedOrders = (data?.orders || []).map((o: any) => ({
+          id: o.id,
+          code: o.id.slice(0, 8).toUpperCase(),
+          createdAt: o.createdAt,
+          status: o.status.toLowerCase(),
+          total: o.finalAmount || o.totalAmount,
+          itemCount: o.items?.length || 0,
+          thumbnail: o.items?.[0]?.productVariant?.product?.images?.[0]?.url || o.items?.[0]?.product?.images?.[0]?.url,
+        }));
+        setOrders(mappedOrders);
       } catch {
         setOrders([]);
       } finally {

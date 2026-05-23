@@ -5,4 +5,5 @@ export type VariantFormData = {
   price: number;
   stockQuantity: number;
   status: "ACTIVE" | "INACTIVE";
+  productId?: string;
 };

@@ -1,74 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
-  Mail,
-  Phone,
-  UserCheck,
-  UserX,
   Download,
   Trash2,
-  Edit,
   Eye,
-  Users,
   UserPlus,
   Ticket,
   Star,
-  History,
+  UserCheck,
+  UserX,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store/store";
+import { fetchUsers, toggleUserActive } from "@/store/features/usersSlice";
 
 export default function CustomerManagementPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterTier, setFilterTier] = useState("all");
+  const dispatch = useDispatch<AppDispatch>();
+  const { users, total, loading } = useSelector((state: RootState) => state.users);
+  const { accessToken: token } = useSelector((state: RootState) => state.auth);
 
-  const MOCK_CUSTOMERS = [
-    {
-      id: 1,
-      name: "Nguyễn Văn A",
-      email: "vana.nguyen@example.com",
-      phone: "0901234567",
-      tier: "Kim cương",
-      status: "active",
-      totalSpent: 45200000,
-      totalOrders: 28,
-      lastOrder: "02/02/2026",
-      avatar: "NA",
-      color: "bg-slate-900", // Dark for premium
-    },
-    {
-      id: 2,
-      name: "Trần Thị B",
-      email: "tranthib@gmail.com",
-      phone: "0902345678",
-      tier: "Vàng",
-      status: "active",
-      totalSpent: 12500000,
-      totalOrders: 12,
-      lastOrder: "28/01/2026",
-      avatar: "TB",
-      color: "bg-yellow-500",
-    },
-    {
-      id: 3,
-      name: "Lê Văn C",
-      email: "levanc@gmail.com",
-      phone: "0903456789",
-      tier: "Thành viên",
-      status: "blocked",
-      totalSpent: 0,
-      totalOrders: 0,
-      lastOrder: "Chưa có",
-      avatar: "LC",
-      color: "bg-slate-400",
-    },
-  ];
+  const [searchTerm, setSearchTerm] = useState("");
+  // filterTier could be mapped to search or a special tier logic if implemented in backend
+
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchUsers({ token, role: "CUSTOMER", search: searchTerm }));
+    }
+  }, [dispatch, token, searchTerm]);
+
+  const handleToggleStatus = (id: string, currentStatus: boolean) => {
+    if (token) {
+      dispatch(toggleUserActive({ token, id, isActive: !currentStatus }));
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(amount);
+  };
+
+  const getInitials = (name: string) => {
+    return name?.substring(0, 2).toUpperCase() || "C";
+  };
+
+  const getColor = (index: number) => {
+    const colors = ["bg-slate-900", "bg-yellow-500", "bg-slate-400", "bg-emerald-500", "bg-blue-500"];
+    return colors[index % colors.length];
   };
 
   return (
@@ -101,8 +82,8 @@ export default function CustomerManagementPage() {
               Tổng khách hàng
             </p>
             <div className="flex items-end justify-between mt-2">
-              <h3 className="text-4xl font-black">1.24K</h3>
-              <span className="text-emerald-500 text-sm font-bold">+12%</span>
+              <h3 className="text-4xl font-black">{total}</h3>
+              <span className="text-emerald-500 text-sm font-bold">Live</span>
             </div>
           </div>
           <div className="p-6 border border-slate-200 rounded-2xl">
@@ -141,24 +122,21 @@ export default function CustomerManagementPage() {
             />
             <input
               type="text"
-              placeholder="Tìm khách hàng..."
+              placeholder="Tìm khách hàng theo tên, email, số điện thoại..."
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-black transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <select
-            className="px-4 py-2 border border-slate-200 rounded-xl focus:outline-none font-medium"
-            value={filterTier}
-            onChange={(e) => setFilterTier(e.target.value)}
-          >
-            <option value="all">Tất cả hạng</option>
-            <option value="diamond">Kim cương</option>
-            <option value="gold">Vàng</option>
-            <option value="member">Thành viên</option>
-          </select>
         </div>
 
         {/* Table */}
-        <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm relative min-h-[300px]">
+          {loading && (
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-slate-200 border-t-black rounded-full animate-spin"></div>
+            </div>
+          )}
           <table className="w-full text-left">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -166,13 +144,10 @@ export default function CustomerManagementPage() {
                   Khách hàng
                 </th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500">
-                  Phân hạng
+                  Liên hệ
                 </th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500">
-                  Tổng chi tiêu
-                </th>
-                <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500">
-                  Đơn cuối
+                  Ngày tham gia
                 </th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500">
                   Trạng thái
@@ -183,79 +158,69 @@ export default function CustomerManagementPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {MOCK_CUSTOMERS.map((customer) => (
+              {users.map((customer, index) => (
                 <tr
                   key={customer.id}
                   className="hover:bg-slate-50/50 transition-colors group"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div
-                        className={`w-10 h-10 rounded-lg ${customer.color} flex items-center justify-center text-white font-bold`}
-                      >
-                        {customer.avatar}
-                      </div>
+                      {customer.avatarUrl ? (
+                         <img src={customer.avatarUrl} alt={customer.firstName} className="w-10 h-10 rounded-lg object-cover" />
+                      ) : (
+                         <div
+                          className={`w-10 h-10 rounded-lg ${getColor(index)} flex items-center justify-center text-white font-bold`}
+                        >
+                          {getInitials(customer.firstName)}
+                        </div>
+                      )}
+                      
                       <div>
-                        <p className="font-bold">{customer.name}</p>
+                        <p className="font-bold">{customer.firstName} {customer.lastName}</p>
                         <p className="text-xs text-slate-400">
-                          {customer.email}
+                          ID: {customer.id.substring(0, 8)}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-1.5">
-                      <Star
-                        size={14}
-                        className={
-                          customer.tier === "Kim cương"
-                            ? "text-slate-900 fill-slate-900"
-                            : "text-yellow-500"
-                        }
-                      />
-                      <span className="text-sm font-bold">{customer.tier}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="font-bold">
-                      {formatCurrency(customer.totalSpent)}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      {customer.totalOrders} đơn hàng
-                    </p>
+                     <p className="font-medium text-sm text-slate-700">{customer.email}</p>
+                     <p className="text-xs text-slate-400">{customer.phone || "Chưa cập nhật SDT"}</p>
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-slate-600">
-                    {customer.lastOrder}
+                    {new Date(customer.createdAt).toLocaleDateString("vi-VN")}
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest ${
-                        customer.status === "active"
+                        customer.isActive
                           ? "bg-emerald-100 text-emerald-700"
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {customer.status}
+                      {customer.isActive ? "ACTIVE" : "BLOCKED"}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        className="p-2 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg text-slate-400 hover:text-blue-600 transition-all"
-                        title="Gửi mã giảm giá"
+                        className="p-2 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg text-slate-400 hover:text-black transition-all"
+                        onClick={() => handleToggleStatus(customer.id, customer.isActive)}
+                        title={customer.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
                       >
-                        <Ticket size={18} />
-                      </button>
-                      <button className="p-2 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg text-slate-400 hover:text-black transition-all">
-                        <Eye size={18} />
-                      </button>
-                      <button className="p-2 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg text-slate-400 hover:text-red-600 transition-all">
-                        <Trash2 size={18} />
+                        {customer.isActive ? <UserX size={18} /> : <UserCheck size={18} />}
                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
+              {users.length === 0 && !loading && (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-500">
+                    Không tìm thấy khách hàng nào.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -15,6 +15,11 @@ import { OrderQueryDto } from './dto/order-query.dto';
 import { OrderStatus } from '@common/enums/order-status.enum';
 import { ProductVariant } from '@/modules/catalog/products/entities/product_variant.entity';
 import { ShippingMethod } from '@/modules/shipping/shipping_methods/entities/shipping_methods.entity';
+import { UsersService } from '@/modules/users/user.service';
+import { CartService } from '@/modules/sales/cart/cart.service';
+import { PaymentTransaction, PaymentStatus } from '@/modules/payments/payment_transactions/entities/payment_transaction.entity';
+import { CheckoutDto } from './dto/checkout.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class OrdersService {
@@ -23,12 +28,152 @@ export class OrdersService {
     private ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private orderItemsRepository: Repository<OrderItem>,
-    @InjectRepository(Product)
+    @InjectRepository(ProductVariant)
     private variantRepository: Repository<ProductVariant>,
     private productsService: ProductsService,
     @InjectRepository(ShippingMethod)
     private readonly shippingMethodRepository: Repository<ShippingMethod>,
+    @InjectRepository(PaymentTransaction)
+    private readonly paymentTransactionRepository: Repository<PaymentTransaction>,
+    private readonly usersService: UsersService,
+    private readonly cartService: CartService,
   ) {}
+
+  async checkout(userId: string | undefined, checkoutDto: CheckoutDto): Promise<Order> {
+    const { items, notes, shippingMethodId, shippingAddress, guestInfo, paymentMethod } = checkoutDto;
+
+    let finalUserId = userId;
+
+    // 1. Handle Guest User Creation
+    if (!finalUserId) {
+      if (!guestInfo) {
+        throw new BadRequestException('Guest info is required if not logged in');
+      }
+      
+      // Try to find user by phone, or create new user
+      // Note: Assuming usersService has a method to find by phone, if not we search by email or just create.
+      // We will create a default user.
+      const defaultEmail = guestInfo.email || `guest_${guestInfo.phone}@hoangnam.local`;
+      let user: any = await this.usersService.findByEmail(defaultEmail).catch(() => null);
+      
+      if (!user) {
+        user = await this.usersService.create({
+          email: defaultEmail,
+          password: uuidv4(), // random password
+          firstName: guestInfo.firstName,
+          lastName: guestInfo.lastName,
+          phone: guestInfo.phone,
+          // role will default to CUSTOMER
+        });
+      }
+      if (!user) throw new BadRequestException('Failed to create guest user');
+      
+      finalUserId = user.id;
+    }
+
+    let subTotal = 0;
+    const orderItems: Partial<OrderItem>[] = [];
+
+    // 2. Validate Shipping Method
+    let shippingMethod = await this.shippingMethodRepository.findOne({
+      where: { id: shippingMethodId, isActive: true },
+    });
+    if (!shippingMethod) {
+      shippingMethod = await this.shippingMethodRepository.findOne({
+        where: { isActive: true },
+      });
+    }
+    if (!shippingMethod) {
+      throw new NotFoundException('Shipping method not found or inactive');
+    }
+
+    // 3. Process items and check stock
+    const variantMap = new Map<string, { variantId: string; quantity: number }>();
+    for (const item of items) {
+      const variant = await this.variantRepository.findOne({
+        where: { id: item.productId },
+        relations: ['product'],
+      });
+
+      if (!variant) {
+        throw new NotFoundException(`Variant ${item.productId} not found`);
+      }
+
+      if (variant.stockQuantity < item.quantity) {
+        throw new BadRequestException(
+          `Sản phẩm ${variant.product.name} (Size: ${variant.size}, Màu: ${variant.color}) không đủ số lượng`,
+        );
+      }
+
+      const price = Number(variant.price);
+      subTotal += price * item.quantity;
+
+      // Track variant for stock reduction
+      variantMap.set(variant.id, { variantId: variant.id, quantity: item.quantity });
+
+      orderItems.push(
+        this.orderItemsRepository.create({
+          productId: variant.product.id,
+          productVariantId: variant.id,
+          quantity: item.quantity,
+          price,
+        })
+      );
+    }
+
+    const shippingFee = Number(shippingMethod.baseCost);
+    const discountAmount = 0; // Tích hợp coupon sau
+    const finalAmount = subTotal + shippingFee - discountAmount;
+
+    // 4. Create Order
+    const order = this.ordersRepository.create({
+      userId: finalUserId,
+      totalAmount: subTotal, // backward compatibility
+      finalAmount,
+      subTotal,
+      shippingFee,
+      discountAmount,
+      notes,
+      status: OrderStatus.PENDING,
+      shippingMethod,
+      shippingAddress,
+      paymentMethod,
+      paymentStatus: PaymentStatus.PENDING,
+    });
+
+    const savedOrder = await this.ordersRepository.save(order);
+
+    // 5. Save Order Items & Reduce Variant Stock
+    const orderItemEntities = orderItems.map((item) =>
+      this.orderItemsRepository.create({
+        ...item,
+        orderId: savedOrder.id,
+      }),
+    );
+    await this.orderItemsRepository.save(orderItemEntities);
+
+    // Reduce stock for each variant
+    for (const [variantId, { quantity }] of variantMap) {
+      await this.variantRepository.decrement({ id: variantId }, 'stockQuantity', quantity);
+    }
+
+    // 6. Create Payment Transaction
+    const tx = this.paymentTransactionRepository.create({
+      order: savedOrder,
+      transactionId: uuidv4(),
+      paymentMethod,
+      amount: finalAmount,
+      status: PaymentStatus.PENDING,
+    });
+    await this.paymentTransactionRepository.save(tx);
+
+    // 7. Clear Cart if logged in
+    if (userId) {
+      await this.cartService.clearCart(userId).catch(e => console.error(e));
+    }
+
+    return this.findOne(savedOrder.id);
+  }
 
   async create(userId: string, createOrderDto: CreateOrderDto): Promise<Order> {
     const { items, notes, shippingMethodId } = createOrderDto;
@@ -37,9 +182,14 @@ export class OrdersService {
     const orderItems: Partial<OrderItem>[] = [];
 
     // 1. Validate Shipping Method
-    const shippingMethod = await this.shippingMethodRepository.findOne({
+    let shippingMethod = await this.shippingMethodRepository.findOne({
       where: { id: shippingMethodId, isActive: true },
     });
+    if (!shippingMethod) {
+      shippingMethod = await this.shippingMethodRepository.findOne({
+        where: { isActive: true },
+      });
+    }
     if (!shippingMethod) {
       throw new NotFoundException('Shipping method not found or inactive');
     }
@@ -71,11 +221,10 @@ export class OrdersService {
       totalAmount += itemTotal;
 
       const order = this.orderItemsRepository.create({
-        productId: variant.id,
+        productId: variant.product.id,
+        productVariantId: variant.id,
         quantity: item.quantity,
         price,
-        size: variant.size,
-        color: variant.color,
       });
       orderItems.push(order);
     }
@@ -130,7 +279,8 @@ export class OrdersService {
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
       .leftJoinAndSelect('order.items', 'items')
-      .leftJoinAndSelect('items.product', 'product');
+      .leftJoinAndSelect('items.product', 'product')
+      .leftJoinAndSelect('items.productVariant', 'productVariant');
 
     // Apply filters
     if (status) {
@@ -170,7 +320,7 @@ export class OrdersService {
   async findOne(id: string): Promise<Order> {
     const order = await this.ordersRepository.findOne({
       where: { id },
-      relations: ['user', 'items', 'items.product'],
+      relations: ['user', 'items', 'items.product', 'items.productVariant'],
     });
 
     if (!order) {
@@ -192,7 +342,7 @@ export class OrdersService {
   }> {
     const [orders, total] = await this.ordersRepository.findAndCount({
       where: { userId },
-      relations: ['items', 'items.product'],
+      relations: ['items', 'items.product', 'items.productVariant'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,

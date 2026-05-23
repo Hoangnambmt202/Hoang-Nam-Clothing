@@ -2,11 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useDispatch, useSelector } from "react-redux";
+import { addItem, addToCartDb } from "@/store/features/cartSlice";
+import { RootState } from "@/store/store";
+import { showToast } from "nextjs-toast-notify";
 import { productApi } from "@/lib/api/product";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
 
 const NewArrivalsPage = () => {
+  const dispatch = useDispatch();
+  const { accessToken } = useSelector((state: RootState) => state.auth);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,10 +72,20 @@ const NewArrivalsPage = () => {
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
           >
             {products.map((product, index) => {
-              const mainImage = product.images?.find((img: any) => img.isMain)?.url ||
-                                product.images?.[0]?.url ||
+              const productImages = (Array.from(
+                new Map(
+                  product.variants
+                    ?.flatMap((v: any) => v.images || [])
+                    ?.map((img: any) => [img.url, img]) || []
+                ).values()
+              ) as any[]) || [];
+              const mainImage = productImages.find((img: any) => img.isThumbnail || img.is_thumbnail)?.url ||
+                                productImages[0]?.url ||
                                 "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070";
-              const price = product.salePrice ? product.salePrice : product.price;
+              const lowestVariantPrice = product.variants?.length > 0 
+                  ? Math.min(...product.variants.map((v: any) => Number(v.price))) 
+                  : (product.price || 0);
+              const price = product.salePrice ? product.salePrice : lowestVariantPrice;
 
               return (
                 <motion.div
@@ -114,6 +130,34 @@ const NewArrivalsPage = () => {
                         </span>
                       )}
                     </div>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const firstVariant = product.variants?.[0];
+                        const itemObj = {
+                          id: product.id,
+                          name: product.name,
+                          price: Number(price),
+                          quantity: 1,
+                          image: mainImage,
+                          variantId: firstVariant?.id,
+                          size: firstVariant?.size || "",
+                          color: firstVariant?.color || "",
+                        };
+                        
+                        if (accessToken) {
+                          dispatch(addToCartDb({ item: itemObj, token: accessToken }) as any);
+                        } else {
+                          dispatch(addItem(itemObj));
+                        }
+                        showToast.success(`Đã thêm ${product.name} vào giỏ hàng!`, { duration: 2000 });
+                      }}
+                      className="mt-4 w-full py-2.5 bg-slate-100 hover:bg-[#1E293B] hover:text-white text-slate-800 rounded-xl font-montserrat font-medium flex justify-center items-center gap-2 transition-colors"
+                    >
+                      <ShoppingCart size={16} />
+                      Thêm vào giỏ
+                    </button>
                   </div>
                 </motion.div>
               );

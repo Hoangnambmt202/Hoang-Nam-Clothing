@@ -2,9 +2,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThanOrEqual, Not, Repository } from 'typeorm';
+import { In, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -17,6 +18,7 @@ import slugify from 'slugify';
 import { Category } from '../categories/entities/category.entity';
 import { ProductVariant } from './entities/product_variant.entity';
 import { ProductImage } from './entities/product_image.entity';
+import { CloudinaryService } from '../../files/cloudinary.service';
 
 @Injectable()
 export class ProductsService {
@@ -29,11 +31,12 @@ export class ProductsService {
     private imageRepository: Repository<ProductImage>,
     @InjectRepository(Category)
     private categoriesRepository: Repository<Category>,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   // CREATE PRODUCT
   async create(createProductDto: CreateProductDto): Promise<Product> {
-    // Verify category exists
+    // Verify primary category exists
     const category = await this.categoriesRepository.findOne({
       where: { id: createProductDto.categoryId },
     });
@@ -41,6 +44,19 @@ export class ProductsService {
     if (!category) {
       throw new NotFoundException('Category not found');
     }
+
+    // Resolve multi-category list
+    let categoriesList: Category[] = [category];
+    if (createProductDto.categoryIds && createProductDto.categoryIds.length > 0) {
+      categoriesList = await this.categoriesRepository.find({
+        where: { id: In(createProductDto.categoryIds) },
+      });
+      // Set primary categoryId to first in list for backward compat
+      if (categoriesList.length > 0 && !createProductDto.categoryIds.includes(createProductDto.categoryId)) {
+        createProductDto.categoryId = categoriesList[0].id;
+      }
+    }
+
     // create slug
     const slug = slugify(createProductDto.name, {
       lower: true,
@@ -55,9 +71,12 @@ export class ProductsService {
     ) {
       finalSlug = `${slug}-${i++}`;
     }
+
+    const { categoryIds, ...restDto } = createProductDto;
     const product = this.productsRepository.create({
-      ...createProductDto,
+      ...restDto,
       slug: finalSlug,
+      categories: categoriesList,
     });
     return this.productsRepository.save(product);
   }
@@ -86,7 +105,7 @@ export class ProductsService {
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.variants', 'variants')
-      .leftJoinAndSelect('product.images', 'images');
+      .leftJoinAndSelect('variants.images', 'images');
 
     // Apply filters
     if (search) {
@@ -99,6 +118,12 @@ export class ProductsService {
     if (categoryId) {
       query = query.andWhere('product.categoryId = :categoryId', {
         categoryId,
+      });
+    }
+
+    if (queryDto.brandId) {
+      query = query.andWhere('product.brandId = :brandId', {
+        brandId: queryDto.brandId,
       });
     }
 
@@ -117,11 +142,11 @@ export class ProductsService {
     }
 
     if (sizes && sizes.length > 0) {
-      query = query.andWhere('product.sizes && :sizes', { sizes });
+      query = query.andWhere('variants.size IN (:...sizes)', { sizes });
     }
 
     if (colors && colors.length > 0) {
-      query = query.andWhere('product.colors && :colors', { colors });
+      query = query.andWhere('variants.color IN (:...colors)', { colors });
     }
 
     if (inStock !== undefined) {
@@ -155,7 +180,7 @@ export class ProductsService {
   async findOne(id: string): Promise<Product> {
     const product = await this.productsRepository.findOne({
       where: { id },
-      relations: ['category', 'variants', 'images', 'brand'],
+      relations: ['category', 'categories', 'variants', 'variants.images', 'brand'],
     });
 
     if (!product) {
@@ -219,11 +244,23 @@ export class ProductsService {
   async remove(id: string): Promise<void> {
     const product = await this.productsRepository.findOne({
       where: { id },
-      relations: ['orderItems', 'cartItems'],
+      relations: ['variants', 'variants.images'],
     });
 
     if (!product) {
       throw new NotFoundException('Product not found');
+    }
+
+    if (product.variants) {
+      for (const variant of product.variants) {
+        if (variant.images) {
+          for (const image of variant.images) {
+            if (image.url) {
+              await this.cloudinaryService.deleteImageByUrl(image.url);
+            }
+          }
+        }
+      }
     }
 
     await this.productsRepository.remove(product);
@@ -309,15 +346,19 @@ export class ProductsService {
       order: { name: 'ASC' },
     });
 
-    const sizeQuery = await this.productsRepository
-      .createQueryBuilder('product')
-      .select('UNNEST(product.sizes)', 'size')
+    const sizeQuery = await this.variantRepository
+      .createQueryBuilder('variant')
+      .innerJoin('variant.product', 'product')
+      .select('variant.size', 'size')
+      .where('product.isActive = :isActive', { isActive: true })
       .distinct(true)
       .getRawMany<{ size: string }>();
 
-    const colorQuery = await this.productsRepository
-      .createQueryBuilder('product')
-      .select('UNNEST(product.colors)', 'color')
+    const colorQuery = await this.variantRepository
+      .createQueryBuilder('variant')
+      .innerJoin('variant.product', 'product')
+      .select('variant.color', 'color')
+      .where('product.isActive = :isActive', { isActive: true })
       .distinct(true)
       .getRawMany<{ color: string }>();
 
@@ -358,7 +399,20 @@ export class ProductsService {
       productId, // productId từ param
     });
 
-    return this.variantRepository.save(variant);
+    try {
+      return await this.variantRepository.save(variant);
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException(`Mã SKU "${dto.sku}" đã tồn tại. Vui lòng tạo SKU khác.`);
+      }
+      throw error;
+    }
+  }
+
+  async findAllVariants() {
+    return this.variantRepository.find({
+      relations: ['product', 'images'],
+    });
   }
 
   async updateVariant(id: string, dto: UpdateVariantDto) {
@@ -374,23 +428,60 @@ export class ProductsService {
   }
 
   async deleteVariant(id: string) {
+    const variant = await this.variantRepository.findOne({
+      where: { id },
+      relations: ['images'],
+    });
+    if (variant && variant.images) {
+      for (const image of variant.images) {
+        if (image.url) {
+          await this.cloudinaryService.deleteImageByUrl(image.url);
+        }
+      }
+    }
     return this.variantRepository.delete(id);
   }
 
   async createImage(dto: CreateImageDto) {
+    let imageUrl = dto.url;
+
+    // If the URL is a base64 data URL, upload to Cloudinary
+    if (imageUrl.startsWith('data:image/')) {
+      const result = await this.cloudinaryService.uploadImage(imageUrl);
+      imageUrl = result.secure_url;
+    }
+
+    const isThumbnail = dto.is_thumbnail !== undefined 
+      ? dto.is_thumbnail 
+      : (dto as any).isThumbnail ?? false;
+
     const image = this.imageRepository.create({
-      ...dto,
-      product: { id: dto.productId },
+      url: imageUrl,
+      isThumbnail,
+      productVariant: { id: dto.productVariantId },
     });
     return this.imageRepository.save(image);
   }
 
   async updateImage(id: string, dto: UpdateImageDto) {
-    await this.imageRepository.update(id, dto);
+    const updateData: any = {};
+    if (dto.url !== undefined) updateData.url = dto.url;
+    
+    if (dto.is_thumbnail !== undefined) {
+      updateData.isThumbnail = dto.is_thumbnail;
+    } else if ((dto as any).isThumbnail !== undefined) {
+      updateData.isThumbnail = (dto as any).isThumbnail;
+    }
+
+    await this.imageRepository.update(id, updateData);
     return this.imageRepository.findOne({ where: { id } });
   }
 
   async deleteImage(id: string) {
+    const image = await this.imageRepository.findOne({ where: { id } });
+    if (image && image.url) {
+      await this.cloudinaryService.deleteImageByUrl(image.url);
+    }
     return this.imageRepository.delete(id);
   }
 }

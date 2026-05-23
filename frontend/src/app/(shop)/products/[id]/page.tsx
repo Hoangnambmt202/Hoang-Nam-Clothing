@@ -3,25 +3,33 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import { productApi } from "@/lib/api/product";
-import { addItem } from "@/store/features/cartSlice";
+import { addItem, addToCartDb } from "@/store/features/cartSlice";
 import { showToast } from "nextjs-toast-notify";
 import { motion } from "framer-motion";
-import { 
-  Loader2, 
-  ShoppingBag, 
-  ChevronRight, 
-  Truck, 
-  RotateCcw, 
+import {
+  Loader2,
+  ShoppingBag,
+  ChevronRight,
+  Truck,
+  RotateCcw,
   ShieldCheck,
   Plus,
-  Minus
+  Minus,
 } from "lucide-react";
+import WishlistHeartButton from "@/components/user/features/wishlist/WishlistHeartButton";
 
-export default function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ProductDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const resolvedParams = use(params);
+  const { id } = resolvedParams;
   const dispatch = useDispatch();
+  const { accessToken } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
 
   const [product, setProduct] = useState<any>(null);
@@ -39,29 +47,48 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         setLoading(true);
         const prodData = await productApi.getProductById(id);
         setProduct(prodData);
-        
+
+        // Extract all images from variants
+        const allImages = prodData?.variants?.flatMap((v: any) => v.images || []) || [];
         // Set default gallery image
-        const mainImg = prodData?.images?.find((img: any) => img.isMain)?.url || 
-                        prodData?.images?.[0]?.url || 
-                        "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070";
+        const mainImg =
+          allImages.find((img: any) => img.is_thumbnail)?.url ||
+          allImages[0]?.url ||
+          "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070";
         setActiveImage(mainImg);
 
-        // Pre-select first options if available
-        if (prodData?.sizes?.length > 0) setSelectedSize(prodData.sizes[0]);
-        if (prodData?.colors?.length > 0) setSelectedColor(prodData.colors[0]);
+        // Pre-select first options based on variants
+        const variants = prodData?.variants || [];
+        const sizes = Array.from(new Set(variants.map((v: any) => v.size).filter(Boolean))) as string[];
+        const colors = Array.from(new Set(variants.map((v: any) => v.color).filter(Boolean))) as string[];
+
+        if (sizes.length > 0) setSelectedSize(sizes[0]);
+        if (colors.length > 0) setSelectedColor(colors[0]);
 
         // Load related products
         const relData = await productApi.getRelatedProducts(id, 4);
         setRelated(relData || []);
       } catch (err) {
         console.error("Lỗi khi tải chi tiết sản phẩm:", err);
-        showToast.error("Không thể tải thông tin sản phẩm.", { duration: 2000 });
+        showToast.error("Không thể tải thông tin sản phẩm.", {
+          duration: 2000,
+        });
       } finally {
         setLoading(false);
       }
     }
     loadData();
   }, [id]);
+
+  // When selected color/size changes, update active image
+  useEffect(() => {
+    if (!product || !selectedColor || !selectedSize) return;
+    const variant = product.variants?.find((v: any) => v.color === selectedColor && v.size === selectedSize);
+    if (variant && variant.images?.length > 0) {
+      const thumb = variant.images.find((img: any) => img.is_thumbnail) || variant.images[0];
+      if (thumb) setActiveImage(thumb.url);
+    }
+  }, [selectedColor, selectedSize, product]);
 
   if (loading) {
     return (
@@ -92,58 +119,86 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     );
   }
 
+  const allGalleryImages = product?.variants?.flatMap((v: any) => v.images || []) || [];
+
+  // Compute unique colors and sizes from variants
+  const availableColors = Array.from(new Set((product.variants || []).map((v: any) => v.color).filter(Boolean))) as string[];
+  const availableSizes = Array.from(new Set((product.variants || []).map((v: any) => v.size).filter(Boolean))) as string[];
+
   // Find exact variant from combination of size and color
   const matchedVariant = product.variants?.find(
-    (v: any) => v.size === selectedSize && v.color === selectedColor
+    (v: any) => v.size === selectedSize && v.color === selectedColor,
   );
 
-  // Determine current price (use variant price if specified, otherwise base price)
-  const currentBasePrice = matchedVariant?.price || product.salePrice || product.price;
-  const originalPrice = product.salePrice ? product.price : null;
+  // Determine current price
+  const lowestPrice = product.variants?.length > 0 
+    ? Math.min(...product.variants.map((v: any) => Number(v.price))) 
+    : 0;
+  
+  const currentBasePrice = matchedVariant ? matchedVariant.price : lowestPrice;
+  const isAvailable = matchedVariant && matchedVariant.stockQuantity > 0;
 
   // Handle adding to Redux Cart
   const handleAddToCart = () => {
-    const mainImg = product.images?.find((img: any) => img.isMain)?.url || 
-                    product.images?.[0]?.url || 
-                    "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070";
+    const mainImg =
+      matchedVariant?.images?.find((img: any) => img.is_thumbnail)?.url ||
+      matchedVariant?.images?.[0]?.url ||
+      allGalleryImages.find((img: any) => img.is_thumbnail)?.url ||
+      allGalleryImages[0]?.url ||
+      "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070";
 
-    dispatch(
-      addItem({
-        id: product.id,
-        name: product.name,
-        price: Number(currentBasePrice),
-        quantity,
-        image: mainImg,
-        variantId: matchedVariant?.id,
-        size: selectedSize,
-        color: selectedColor,
-      })
-    );
+    const itemObj = {
+      id: product.id,
+      name: product.name,
+      price: Number(currentBasePrice),
+      quantity,
+      image: mainImg,
+      variantId: matchedVariant?.id,
+      size: selectedSize,
+      color: selectedColor,
+    };
 
-    showToast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`, { duration: 2000 });
+    if (accessToken) {
+      dispatch(addToCartDb({ item: itemObj, token: accessToken }) as any);
+    } else {
+      dispatch(addItem(itemObj));
+    }
+
+    showToast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`, {
+      duration: 2000,
+    });
   };
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="bg-[#F8FAFC] min-h-screen py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-xs font-montserrat font-light text-[#64748B] mb-10 overflow-x-auto whitespace-nowrap">
-          <Link href="/" className="hover:text-[#2563EB] transition-colors">Trang chủ</Link>
+          <Link href="/" className="hover:text-[#2563EB] transition-colors">
+            Trang chủ
+          </Link>
           <ChevronRight size={10} />
-          <Link href="/new-arrivals" className="hover:text-[#2563EB] transition-colors">Cửa hàng</Link>
+          <Link
+            href="/new-arrivals"
+            className="hover:text-[#2563EB] transition-colors"
+          >
+            Cửa hàng
+          </Link>
           <ChevronRight size={10} />
-          <span className="text-[#64748B]">{product.category?.name || "Danh mục"}</span>
+          <span className="text-[#64748B]">
+            {product.category?.name || "Danh mục"}
+          </span>
           <ChevronRight size={10} />
-          <span className="text-[#1E293B] font-medium max-w-[200px] truncate">{product.name}</span>
+          <span className="text-[#1E293B] font-medium max-w-[200px] truncate">
+            {product.name}
+          </span>
         </div>
 
         {/* Product Core Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
-          
           {/* Left: Images Column */}
           <div className="space-y-4">
-            <motion.div 
+            <motion.div
               layoutId="product-main-image"
               className="aspect-[3/4] rounded-3xl overflow-hidden bg-white border border-zinc-100 shadow-sm relative"
             >
@@ -155,13 +210,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             </motion.div>
 
             {/* Thumbnails list */}
-            {product.images?.length > 1 && (
-              <div className="flex gap-4 overflow-x-auto pb-2">
-                {product.images.map((img: any) => (
+            {allGalleryImages.length > 0 && (
+              <div className="flex gap-4 overflow-x-auto pb-2 overflow-y-hidden snap-x">
+                {allGalleryImages.map((img: any, idx: number) => (
                   <button
-                    key={img.id}
+                    key={img.id || idx}
                     onClick={() => setActiveImage(img.url)}
-                    className={`w-20 h-24 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all ${activeImage === img.url ? "border-[#2563EB]" : "border-transparent opacity-75 hover:opacity-100"}`}
+                    className={`w-20 h-24 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all snap-start ${activeImage === img.url ? "border-[#2563EB] ring-2 ring-[#2563EB]/20" : "border-transparent opacity-75 hover:opacity-100"}`}
                   >
                     <img
                       src={img.url}
@@ -176,10 +231,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
           {/* Right: Info Column */}
           <div className="flex flex-col">
-            
             <div className="mb-6">
               <span className="text-xs uppercase tracking-widest text-[#64748B] font-montserrat mb-2 block font-medium">
-                {product.brand?.name || product.category?.name || "Premium Collection"}
+                {product.brand?.name ||
+                  product.category?.name ||
+                  "Premium Collection"}
               </span>
               <h1 className="text-3xl md:text-4xl font-cormorant font-semibold text-[#1E293B] mb-4">
                 {product.name}
@@ -190,9 +246,9 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                 <span className="text-2xl font-montserrat font-semibold text-[#2563EB]">
                   {Number(currentBasePrice).toLocaleString("vi-VN")}đ
                 </span>
-                {originalPrice && (
-                  <span className="text-sm line-through text-[#94A3B8] font-montserrat">
-                    {Number(originalPrice).toLocaleString("vi-VN")}đ
+                {!matchedVariant && product.variants?.length > 1 && (
+                  <span className="text-sm text-[#94A3B8] font-montserrat font-light">
+                    (Giá khởi điểm)
                   </span>
                 )}
               </div>
@@ -200,17 +256,21 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
             {/* Description */}
             <p className="font-montserrat font-light text-sm text-[#475569] leading-relaxed mb-8 border-b border-zinc-100 pb-8">
-              {product.description || "Chưa có mô tả chi tiết cho sản phẩm này."}
+              {product.description ||
+                "Chưa có mô tả chi tiết cho sản phẩm này."}
             </p>
 
             {/* Select Colors */}
-            {product.colors?.length > 0 && (
+            {availableColors.length > 0 && (
               <div className="mb-6">
                 <span className="text-xs uppercase tracking-wider font-montserrat text-[#64748B] font-medium block mb-3">
-                  Màu sắc: <span className="text-[#1E293B] font-semibold ml-1">{selectedColor}</span>
+                  Màu sắc:{" "}
+                  <span className="text-[#1E293B] font-semibold ml-1">
+                    {selectedColor || "Chưa chọn"}
+                  </span>
                 </span>
                 <div className="flex flex-wrap gap-3">
-                  {product.colors.map((color: string) => (
+                  {availableColors.map((color: string) => (
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
@@ -224,13 +284,16 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             )}
 
             {/* Select Sizes */}
-            {product.sizes?.length > 0 && (
+            {availableSizes.length > 0 && (
               <div className="mb-8">
                 <span className="text-xs uppercase tracking-wider font-montserrat text-[#64748B] font-medium block mb-3">
-                  Kích thước: <span className="text-[#1E293B] font-semibold ml-1">{selectedSize}</span>
+                  Kích thước:{" "}
+                  <span className="text-[#1E293B] font-semibold ml-1">
+                    {selectedSize || "Chưa chọn"}
+                  </span>
                 </span>
                 <div className="flex flex-wrap gap-3">
-                  {product.sizes.map((size: string) => (
+                  {availableSizes.map((size: string) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
@@ -245,11 +308,16 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
             {/* Stock Availability */}
             <div className="flex items-center gap-4 text-xs font-montserrat text-[#64748B] mb-8 bg-zinc-50 border border-zinc-100 px-4 py-3 rounded-xl w-max">
-              <span>Mã SKU: <span className="text-[#1E293B] font-medium">{matchedVariant?.sku || "HN-N/A"}</span></span>
-              <span>|</span>
-              <span>Trạng thái: 
-                <span className={`font-semibold ml-1 ${matchedVariant ? (matchedVariant.stockQuantity > 0 ? "text-green-600" : "text-red-500") : "text-amber-500"}`}>
-                  {matchedVariant ? (matchedVariant.stockQuantity > 0 ? `Còn hàng (${matchedVariant.stockQuantity})` : "Hết hàng") : "Liên hệ"}
+              <span>
+                Trạng thái:
+                <span
+                  className={`font-semibold ml-1 ${matchedVariant ? (matchedVariant.stockQuantity > 0 ? "text-green-600" : "text-red-500") : "text-amber-500"}`}
+                >
+                  {matchedVariant
+                    ? matchedVariant.stockQuantity > 0
+                      ? `Còn hàng (${matchedVariant.stockQuantity})`
+                      : "Hết hàng"
+                    : "Vui lòng chọn Phân loại"}
                 </span>
               </span>
             </div>
@@ -258,15 +326,17 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               {/* Quantity */}
               <div className="flex items-center justify-between border border-zinc-200 rounded-xl bg-white px-4 py-3.5 w-full sm:w-32">
-                <button 
-                  onClick={() => setQuantity(q => q > 1 ? q - 1 : 1)}
+                <button
+                  onClick={() => setQuantity((q) => (q > 1 ? q - 1 : 1))}
                   className="text-zinc-500 hover:text-zinc-800 transition-colors"
                 >
                   <Minus size={16} />
                 </button>
-                <span className="font-montserrat font-medium text-[#1E293B]">{quantity}</span>
-                <button 
-                  onClick={() => setQuantity(q => q + 1)}
+                <span className="font-montserrat font-medium text-[#1E293B]">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity((q) => q + 1)}
                   className="text-zinc-500 hover:text-zinc-800 transition-colors"
                 >
                   <Plus size={16} />
@@ -276,33 +346,45 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
               {/* Add to Cart Button */}
               <button
                 onClick={handleAddToCart}
-                disabled={matchedVariant && matchedVariant.stockQuantity === 0}
+                disabled={!isAvailable}
                 className="flex-1 relative flex items-center justify-center gap-2 py-4 bg-[#1E293B] text-white rounded-xl hover:bg-[#0F172A] transition-colors disabled:bg-zinc-300 disabled:cursor-not-allowed group font-montserrat font-medium overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                 <ShoppingBag size={18} />
                 <span className="relative z-10">Thêm vào giỏ hàng</span>
               </button>
+
+              <WishlistHeartButton productId={product.id} productName={product.name} className="!p-4 border border-zinc-200 !rounded-xl !bg-white hover:!bg-slate-50 transition-colors shadow-none" size={22} />
             </div>
 
             {/* Policies */}
             <div className="border-t border-zinc-100 pt-6 grid grid-cols-3 gap-4 font-montserrat text-[10px] sm:text-xs text-[#64748B] font-light">
               <div className="flex flex-col items-center text-center gap-2">
                 <Truck size={18} className="text-[#2563EB]" />
-                <span>Giao hàng toàn quốc<br />Miễn phí đơn từ 500k</span>
+                <span>
+                  Giao hàng toàn quốc
+                  <br />
+                  Miễn phí đơn từ 500k
+                </span>
               </div>
               <div className="flex flex-col items-center text-center gap-2">
                 <RotateCcw size={18} className="text-[#2563EB]" />
-                <span>Đổi trả dễ dàng<br />Trong vòng 7 ngày</span>
+                <span>
+                  Đổi trả dễ dàng
+                  <br />
+                  Trong vòng 7 ngày
+                </span>
               </div>
               <div className="flex flex-col items-center text-center gap-2">
                 <ShieldCheck size={18} className="text-[#2563EB]" />
-                <span>Chính hãng 100%<br />Cam kết chất lượng</span>
+                <span>
+                  Chính hãng 100%
+                  <br />
+                  Cam kết chất lượng
+                </span>
               </div>
             </div>
-
           </div>
-
         </div>
 
         {/* Related Products Section */}
@@ -313,17 +395,31 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {related.map((item) => {
-                const mainImage = item.images?.find((img: any) => img.isMain)?.url ||
-                                  item.images?.[0]?.url ||
+                const productImages = (Array.from(
+                  new Map(
+                    item.variants
+                      ?.flatMap((v: any) => v.images || [])
+                      ?.map((img: any) => [img.url, img]) || []
+                  ).values()
+                ) as any[]) || [];
+                const mainImage = productImages.find((img: any) => img.isThumbnail || img.is_thumbnail)?.url ||
+                                  productImages[0]?.url ||
                                   "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070";
-                const price = item.salePrice ? item.salePrice : item.price;
+                
+                const lowestVariantPrice = item.variants?.length > 0 
+                  ? Math.min(...item.variants.map((v: any) => Number(v.price))) 
+                  : 0;
+                
                 return (
                   <motion.div
                     whileHover={{ y: -5 }}
                     key={item.id}
                     className="group bg-white border border-zinc-100 rounded-3xl overflow-hidden shadow-sm flex flex-col h-full transition-all"
                   >
-                    <Link href={`/products/${item.id}`} className="relative block aspect-[3/4] overflow-hidden">
+                    <Link
+                      href={`/products/${item.id}`}
+                      className="relative block aspect-[3/4] overflow-hidden"
+                    >
                       <img
                         src={mainImage}
                         alt={item.name}
@@ -340,7 +436,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                         </h3>
                       </Link>
                       <span className="text-sm font-semibold font-montserrat mt-auto block text-[#1E293B]">
-                        {Number(price).toLocaleString("vi-VN")}đ
+                        {Number(lowestVariantPrice).toLocaleString("vi-VN")}đ
                       </span>
                     </div>
                   </motion.div>
@@ -349,7 +445,6 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

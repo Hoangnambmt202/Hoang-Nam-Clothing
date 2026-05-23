@@ -18,64 +18,56 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 
+import { orderApi } from "@/lib/api/order";
+import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
+
 export default function OrderDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  // Mock data - in real app fetch based on params.id
-  const order = {
-    id: "ORD-1001",
-    status: "processing",
-    date: "04/02/2024 - 14:30",
-    customer: {
-      name: "Nguyễn Văn An",
-      email: "nguyenvana@gmail.com",
-      phone: "0901234567",
-      avatar: "NA",
-    },
-    shippingAddress: {
-      address: "123 Đường Lê Lợi, Phường Bến Nghé",
-      district: "Quận 1",
-      city: "Hồ Chí Minh",
-      country: "Vietnam",
-    },
-    payment: {
-      method: "Chuyển khoản ngân hàng",
-      status: "paid",
-      transactionId: "TRX-987654321",
-    },
-    items: [
-      {
-        id: 1,
-        name: "Áo Thun Basic Cotton Premium",
-        sku: "AT-001-BL-M",
-        variant: "Đen / M",
-        price: 350000,
-        quantity: 2,
-        total: 700000,
-        image:
-          "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&auto=format&fit=crop&q=60",
-      },
-      {
-        id: 2,
-        name: "Quần Jeans Slim Fit",
-        sku: "QJ-002-BL-32",
-        variant: "Xanh Đậm / 32",
-        price: 650000,
-        quantity: 1,
-        total: 650000,
-        image:
-          "https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?w=100&auto=format&fit=crop&q=60",
-      },
-    ],
-    subtotal: 1350000,
-    shippingFee: 30000,
-    discount: 50000,
-    total: 1330000,
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const { accessToken } = useAuth();
+
+  useEffect(() => {
+    if (params.id) {
+      fetchOrder();
+    }
+  }, [params.id, accessToken]);
+
+  const fetchOrder = async () => {
+    try {
+      setLoading(true);
+      const data = await orderApi.getById(params.id, accessToken || "");
+      setOrder(data);
+    } catch (error) {
+      console.error("Failed to fetch order", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleUpdateStatus = async () => {
+    // Implement status update logic here or open a modal
+    alert("Chức năng cập nhật trạng thái đang phát triển");
   };
 
   const statusConfig = {
+    pending: {
+      label: "Chờ xác nhận",
+      color: "text-yellow-600",
+      bg: "bg-yellow-50",
+      border: "border-yellow-100",
+      icon: Clock,
+    },
+    confirmed: {
+      label: "Đã xác nhận",
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+      border: "border-blue-100",
+      icon: CheckCircle,
+    },
     processing: {
       label: "Đang xử lý",
       color: "text-blue-600",
@@ -113,8 +105,24 @@ export default function OrderDetailPage({
     }).format(amount);
   };
 
-  const StatusIcon =
-    statusConfig[order.status as keyof typeof statusConfig].icon;
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Đang tải...</div>;
+  }
+
+  if (!order) {
+    return <div className="min-h-screen flex items-center justify-center">Không tìm thấy đơn hàng</div>;
+  }
+
+  const statusKey = order.status?.toLowerCase() || 'pending';
+  const config = statusConfig[statusKey as keyof typeof statusConfig] || statusConfig.pending;
+  const StatusIcon = config.icon;
+
+  const orderDate = new Date(order.createdAt).toLocaleDateString("vi-VN");
+  const orderTime = new Date(order.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' });
+  const customerName = order.user?.fullName || order.shippingAddress?.recipientName || "Khách Vãng Lai";
+  const customerPhone = order.shippingAddress?.phone || "N/A";
+  const customerEmail = order.user?.email || "N/A";
+  const avatar = customerName.substring(0, 2).toUpperCase();
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
@@ -134,18 +142,15 @@ export default function OrderDetailPage({
                   Đơn hàng #{order.id}
                 </h1>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${statusConfig[order.status as keyof typeof statusConfig].bg} ${statusConfig[order.status as keyof typeof statusConfig].color}`}
+                  className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${config.bg} ${config.color}`}
                 >
                   <StatusIcon size={14} />
-                  {
-                    statusConfig[order.status as keyof typeof statusConfig]
-                      .label
-                  }
+                  {config.label}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
                 <Calendar size={14} />
-                {order.date}
+                {orderDate} - {orderTime}
               </div>
             </div>
           </div>
@@ -171,62 +176,63 @@ export default function OrderDetailPage({
                 </span>
               </div>
               <div className="divide-y divide-slate-100">
-                {order.items.map((item) => (
-                  <div key={item.id} className="p-6 flex gap-4">
-                    <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-bold text-slate-900 line-clamp-1">
-                            {item.name}
-                          </h4>
-                          <p className="text-sm text-slate-500 mt-1">
-                            Phân loại: {item.variant} | SKU: {item.sku}
+                {order.items?.map((item: any) => {
+                  const product = item.product || {};
+                  const variant = item.productVariant || {};
+                  const image = product.images?.[0]?.url || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&auto=format&fit=crop&q=60";
+                  const total = item.price * item.quantity;
+                  
+                  return (
+                    <div key={item.id} className="p-6 flex gap-4">
+                      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0">
+                        <Image
+                          src={image}
+                          alt={product.name || "Sản phẩm"}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-bold text-slate-900 line-clamp-1">
+                              {product.name || "Sản phẩm không xác định"}
+                            </h4>
+                            <p className="text-sm text-slate-500 mt-1">
+                              Phân loại: {variant.color} / {variant.size} | SKU: {variant.sku}
+                            </p>
+                          </div>
+                          <p className="font-bold text-slate-900">
+                            {formatCurrency(total)}
                           </p>
                         </div>
-                        <p className="font-bold text-slate-900">
-                          {formatCurrency(item.total)}
-                        </p>
-                      </div>
-                      <div className="mt-2 flex items-center justify-between">
-                        <span className="text-sm text-slate-600 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                          {formatCurrency(item.price)} x {item.quantity}
-                        </span>
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-sm text-slate-600 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                            {formatCurrency(item.price)} x {item.quantity}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="p-6 bg-slate-50 border-t-2 border-slate-100 space-y-3">
                 <div className="flex justify-between text-sm text-slate-600">
                   <span>Tạm tính</span>
                   <span className="font-medium">
-                    {formatCurrency(order.subtotal)}
+                    {formatCurrency(order.finalAmount || order.totalAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm text-slate-600">
                   <span>Phí vận chuyển</span>
                   <span className="font-medium">
-                    {formatCurrency(order.shippingFee)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm text-emerald-600">
-                  <span>Giảm giá</span>
-                  <span className="font-medium">
-                    -{formatCurrency(order.discount)}
+                    {formatCurrency(order.shippingMethod?.price || 0)}
                   </span>
                 </div>
                 <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
                   <span className="font-bold text-slate-900">Tổng cộng</span>
                   <span className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(order.total)}
+                    {formatCurrency(order.finalAmount)}
                   </span>
                 </div>
               </div>
@@ -287,11 +293,11 @@ export default function OrderDetailPage({
               </h3>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-lg">
-                  {order.customer.avatar}
+                  {avatar}
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">
-                    {order.customer.name}
+                    {customerName}
                   </p>
                   <p className="text-xs text-slate-500">
                     Khách hàng thân thiết
@@ -301,11 +307,11 @@ export default function OrderDetailPage({
               <div className="space-y-3 pt-4 border-t border-slate-100">
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <Mail size={16} className="text-slate-400" />
-                  {order.customer.email}
+                  {customerEmail}
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <Phone size={16} className="text-slate-400" />
-                  {order.customer.phone}
+                  {customerPhone}
                 </div>
               </div>
             </div>
@@ -316,13 +322,10 @@ export default function OrderDetailPage({
                 Địa chỉ giao hàng
               </h3>
               <p className="text-slate-700 font-medium mb-1">
-                {order.shippingAddress.address}
+                {order.shippingAddress?.addressLine}
               </p>
               <p className="text-sm text-slate-500">
-                {order.shippingAddress.district}, {order.shippingAddress.city}
-              </p>
-              <p className="text-sm text-slate-500">
-                {order.shippingAddress.country}
+                {order.shippingAddress?.ward}, {order.shippingAddress?.district}, {order.shippingAddress?.province}
               </p>
             </div>
 
@@ -337,7 +340,7 @@ export default function OrderDetailPage({
                     Phương thức
                   </p>
                   <p className="font-medium text-slate-900">
-                    {order.payment.method}
+                    {order.paymentTransactions?.[0]?.paymentMethod || "COD"}
                   </p>
                 </div>
                 <div>
@@ -346,7 +349,7 @@ export default function OrderDetailPage({
                   </p>
                   <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-sm mt-1">
                     <CheckCircle size={14} />
-                    Đã thanh toán
+                    {order.paymentTransactions?.[0]?.status === "COMPLETED" ? "Đã thanh toán" : "Chưa thanh toán"}
                   </span>
                 </div>
                 <div>
@@ -354,7 +357,7 @@ export default function OrderDetailPage({
                     Mã giao dịch
                   </p>
                   <p className="font-mono text-xs text-slate-600 bg-slate-100 p-1.5 rounded mt-1">
-                    {order.payment.transactionId}
+                    {order.paymentTransactions?.[0]?.providerTransactionId || "N/A"}
                   </p>
                 </div>
               </div>

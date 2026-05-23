@@ -30,6 +30,10 @@ export class ProductQueryDto {
   categoryId?: string;
 
   @IsOptional()
+  @IsString()
+  brandId?: string;
+
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   minPrice?: number;
