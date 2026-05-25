@@ -28,6 +28,9 @@ import { SeedService } from './seed.service';
         migrations: ['src/config/migrations/*.ts'],
         synchronize: false,
         logging: true,
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
     }),
     // Đăng ký Feature Entity
