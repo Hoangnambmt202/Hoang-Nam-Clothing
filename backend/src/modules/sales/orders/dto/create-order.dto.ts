@@ -47,7 +47,7 @@ export class CreateOrderDto {
 
   // 2. Thêm trường này để chọn phương thức vận chuyển
   @IsNotEmpty()
-  @IsUUID()
+  @IsString()
   shippingMethodId: string;
 
   @IsOptional()

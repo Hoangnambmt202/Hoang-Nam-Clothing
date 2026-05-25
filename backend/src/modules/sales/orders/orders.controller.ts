@@ -23,6 +23,9 @@ import { Roles } from '@common/decorators/roles.decorator';
 import { Role } from '@common/enums/role.enum';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from '@/common/enums/order-status.enum';
+import { CheckoutDto } from './dto/checkout.dto';
+import { Public } from '@/common/decorators/public.decorator';
+import { OptionalJwtAuthGuard } from '@/modules/auth/guards/optional-jwt-auth.guard';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -33,6 +36,13 @@ export class OrdersController {
   async create(@Request() req, @Body() createOrderDto: CreateOrderDto) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return this.ordersService.create(req.user.id, createOrderDto);
+  }
+
+  @Public()
+  @UseGuards(OptionalJwtAuthGuard)
+  @Post('checkout')
+  async checkout(@Request() req, @Body() checkoutDto: CheckoutDto) {
+    return this.ordersService.checkout(req.user?.id, checkoutDto);
   }
 
   @Get()

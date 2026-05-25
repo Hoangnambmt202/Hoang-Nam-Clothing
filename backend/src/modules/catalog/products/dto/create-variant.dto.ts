@@ -25,4 +25,16 @@ export class CreateVariantDto {
   @Type(() => Number)
   @Min(0)
   stock_quantity?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  stockQuantity?: number;
 }

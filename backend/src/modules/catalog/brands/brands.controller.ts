@@ -30,7 +30,7 @@ export class BrandsController {
 
   @Get()
   findAll() {
-    return this.brandsService.findAll();
+    return this.brandsService.findAllWithStats();
   }
 
   @Get(':id')

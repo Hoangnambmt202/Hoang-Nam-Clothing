@@ -45,3 +45,13 @@ coverage/
 *.log
 *.bak
 *.swp
+
+
+implementation_plan.md
+implementation_summary.md
+implementation_plan_cart.md
+implementation_plan_admin_pro_cate_brand.md
+implementation_plan_checkout.md
+implementation_plan_address.md
+task.md
+walkthrough.md

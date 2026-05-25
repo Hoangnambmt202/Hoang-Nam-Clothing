@@ -2,14 +2,13 @@
 
 import React, { useState } from "react";
 
-// Types
 interface Product {
   id: number;
   name: string;
   price: string;
 }
 
-const HomePageClient: React.FC = () => {
+const HomePageClient = () => {
   const [email, setEmail] = useState<string>("");
 
   const products: Product[] = [

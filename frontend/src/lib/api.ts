@@ -11,7 +11,22 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
   });
 
   if (!res.ok) {
-    throw new Error(await res.text());
+    const errorText = await res.text();
+    try {
+      const errorJson = JSON.parse(errorText);
+      throw new Error(errorJson.message || errorText);
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        throw new Error(errorText);
+      }
+      throw e;
+    }
   }
-  return res.json();
+
+  const json = await res.json();
+  if (json && typeof json === "object" && json.success === true && "data" in json) {
+    return json.data;
+  }
+  return json;
 }
+

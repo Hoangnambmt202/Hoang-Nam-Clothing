@@ -1,19 +1,19 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Product } from './product.entity';
+import { ProductVariant } from './product_variant.entity';
 import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('product_images')
 export class ProductImage extends BaseEntity {
-  @ManyToOne(() => Product, (product) => product.images, {
+  @ManyToOne(() => ProductVariant, (variant) => variant.images, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'productId' })
-  product: Product;
+  @JoinColumn({ name: 'productVariantId' })
+  productVariant: ProductVariant;
 
   @Column()
-  productId: string;
+  productVariantId: string;
 
-  @Column({ length: 255 })
+  @Column({ type: 'text' })
   url: string;
 
   @Column({ default: false })

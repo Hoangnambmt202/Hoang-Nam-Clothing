@@ -1,16 +1,12 @@
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, Min, IsOptional, IsUUID } from 'class-validator';
 
 export class UpdateCartItemDto {
-  @IsOptional()
   @IsInt()
   @Min(1)
+  @IsOptional()
   quantity?: number;
 
+  @IsUUID()
   @IsOptional()
-  @IsString()
-  size?: string;
-
-  @IsOptional()
-  @IsString()
-  color?: string;
+  newVariantId?: string;
 }

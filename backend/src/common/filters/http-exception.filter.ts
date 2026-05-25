@@ -26,7 +26,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Add validation errors if available
     const exceptionResponse = exception.getResponse();
     if (typeof exceptionResponse === 'object' && exceptionResponse['message']) {
-      // errorResponse.message = exceptionResponse['message'];
+      errorResponse.message = exceptionResponse['message'];
     }
 
     response.status(status).json(errorResponse);

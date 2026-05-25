@@ -6,13 +6,16 @@ import { Product } from './entities/product.entity';
 import { Category } from '../categories/entities/category.entity';
 import { ProductImage } from './entities/product_image.entity';
 import { ProductVariant } from './entities/product_variant.entity';
+import { FilesModule } from '../../files/files.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Product, Category, ProductImage, ProductVariant]),
+    FilesModule,
   ],
   controllers: [ProductsController],
   providers: [ProductsService],
   exports: [ProductsService],
 })
 export class ProductsModule {}
+

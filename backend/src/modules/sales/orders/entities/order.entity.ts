@@ -5,7 +5,7 @@ import { OrderStatus } from '@common/enums/order-status.enum';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { ShippingMethod } from '@/modules/shipping/shipping_methods/entities/shipping_methods.entity';
 import { OrderPromotion } from '../../order_promotions/entities/order_promotion.entity';
-import { PaymentTransaction } from '@/modules/payments/payment_transactions/entities/payment_transaction.entity';
+import { PaymentTransaction, PaymentStatus } from '@/modules/payments/payment_transactions/entities/payment_transaction.entity';
 
 @Entity('orders')
 export class Order extends BaseEntity {
@@ -45,4 +45,26 @@ export class Order extends BaseEntity {
 
   @OneToMany(() => PaymentTransaction, (tx) => tx.order)
   transactions: PaymentTransaction[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  shippingAddress: any;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  subTotal: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  shippingFee: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  discountAmount: number;
+
+  @Column({ default: 'COD' })
+  paymentMethod: string;
+
+  @Column({
+    type: 'enum',
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING,
+  })
+  paymentStatus: PaymentStatus;
 }

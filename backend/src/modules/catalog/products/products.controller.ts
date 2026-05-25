@@ -26,6 +26,7 @@ import { UpdateImageDto } from './dto/update-image.dto';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  // CREATE PRODUCT
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -59,6 +60,11 @@ export class ProductsController {
   @Roles(Role.ADMIN)
   getProductStats() {
     return this.productsService.getProductStats();
+  }
+
+  @Get('variants/all')
+  findAllVariants() {
+    return this.productsService.findAllVariants();
   }
 
   // GET ONE PRODUCT BY ID
@@ -124,9 +130,9 @@ export class ProductsController {
   }
 
   // Images
-  @Post(':id/images')
-  createImage(@Param('id') productId: string, @Body() dto: CreateImageDto) {
-    return this.productsService.createImage({ ...dto, productId });
+  @Post('variants/:variantId/images')
+  createImage(@Param('variantId') variantId: string, @Body() dto: CreateImageDto) {
+    return this.productsService.createImage({ ...dto, productVariantId: variantId });
   }
 
   @Patch('images/:imageId')

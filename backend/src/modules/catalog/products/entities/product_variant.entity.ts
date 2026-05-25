@@ -3,6 +3,8 @@ import { Product } from './product.entity';
 import { CartItem } from '@/modules/sales/cart/entities/cart-item.entity';
 import { OrderItem } from '@/modules/sales/orders/entities/order-item.entity';
 import { BaseEntity } from '@/common/entities/base.entity';
+import { Status } from '@/common/enums/status.enum';
+import { ProductImage } from './product_image.entity';
 
 @Entity('product_variants')
 export class ProductVariant extends BaseEntity {
@@ -27,6 +29,13 @@ export class ProductVariant extends BaseEntity {
   @Column({ length: 100, unique: true, nullable: true })
   sku: string;
 
+  @Column({
+    type: 'enum',
+    enum: Status,
+    default: Status.ACTIVE,
+  })
+  status: Status;
+
   @Column('int', { default: 0 })
   stockQuantity: number;
 
@@ -35,4 +44,9 @@ export class ProductVariant extends BaseEntity {
 
   @OneToMany(() => CartItem, (cartItem) => cartItem.productVariant)
   cartItems: CartItem[];
+
+  @OneToMany(() => ProductImage, (image) => image.productVariant, {
+    cascade: true,
+  })
+  images: ProductImage[];
 }

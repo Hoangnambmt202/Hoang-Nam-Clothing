@@ -2,168 +2,287 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
-import InputForm from "@/components/ui/InputForm";
-import ToastMessageComponent from "@/components/shared/ToastMessage";
-import { ChevronLeft, Home } from "lucide-react";
-import Button from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { showToast } from "nextjs-toast-notify";
+import { motion } from "framer-motion";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { FaFacebook, FaGoogle } from "react-icons/fa";
 
 const SignUpPage = () => {
+  const { register } = useAuth();
+  const router = useRouter();
+
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState({}); // State để lưu lỗi của từng input
-  const [toast, setToast] = useState({ show: false, message: "", color: "" });
+  const [loading, setLoading] = useState(false);
 
-  const validateField = (name: string, value: any) => {
-    let error = "";
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    switch (name) {
-      case "email":
-        if (!value) error = "Vui lòng nhập email";
-        else if (!emailRegex.test(value)) error = "Email không hợp lệ";
-        break;
+    if (!fullName) newErrors.fullName = "Vui lòng nhập họ và tên";
 
-      case "phone":
-        if (!value) error = "Vui lòng nhập số điện thoại";
-        else if (value.length < 10) error = "Số điện thoại quá ngắn";
-        break;
+    if (!email) newErrors.email = "Vui lòng nhập email";
+    else if (!emailRegex.test(email)) newErrors.email = "Email không hợp lệ";
 
-      case "password":
-        if (!value) error = "Vui lòng nhập mật khẩu";
-        else if (value.length < 6) error = "Mật khẩu phải có ít nhất 6 ký tự";
-        break;
+    if (!phone) newErrors.phone = "Vui lòng nhập số điện thoại";
+    else if (phone.length < 10) newErrors.phone = "Số điện thoại quá ngắn";
 
-      case "confirmPassword":
-        if (!value) error = "Vui lòng nhập lại mật khẩu";
-        else if (value !== password) error = "Mật khẩu không khớp";
-        break;
+    if (!password) newErrors.password = "Vui lòng nhập mật khẩu";
+    else if (password.length < 6)
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
 
-      default:
-        break;
-    }
+    if (!confirmPassword)
+      newErrors.confirmPassword = "Vui lòng nhập lại mật khẩu";
+    else if (confirmPassword !== password)
+      newErrors.confirmPassword = "Mật khẩu không khớp";
 
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: error,
-    }));
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignUp = () => {
-    // Kiểm tra tất cả các trường trước khi gửi
-    validateField("email", email);
-    validateField("phone", phone);
-    validateField("password", password);
-    validateField("confirmPassword", confirmPassword);
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const nameParts = fullName.trim().split(/\s+/);
+    let firstName = "Khách";
+    let lastName = "Hàng";
+    if (nameParts.length > 0) {
+      if (nameParts.length === 1) {
+        lastName = nameParts[0];
+        firstName = "";
+      } else {
+        lastName = nameParts[nameParts.length - 1];
+        firstName = nameParts.slice(0, nameParts.length - 1).join(" ");
+      }
+    }
+
+    setLoading(true);
+    try {
+      await register({ email, phone, password, firstName, lastName });
+      showToast.success("Đăng ký thành công! Vui lòng đăng nhập.", {
+        duration: 2000,
+      });
+      router.push("/auth/sign-in");
+    } catch (error: any) {
+      showToast.error(error?.message || "Đăng ký thất bại", { duration: 2000 });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="container min-h-screen px-4 mx-auto bg-white">
-      {toast.show && (
-        <ToastMessageComponent
-          message={toast.message}
-          color={toast.color}
-          onClose={() => setToast({ ...toast, show: false })}
+    <div className="flex min-h-screen bg-[#F8FAFC]">
+      {/* Left side Image - Hidden on mobile */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-zinc-900 overflow-hidden">
+        <motion.div
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop')",
+          }}
         />
-      )}
-      <ChevronLeft size={16} className="inline-block mr-2 text-black" />
-      <Button className="mt-4 rounded-full">
-        <Link href="/">
-          {" "}
-          <Home size={16} className="inline-block " />{" "}
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative z-10 flex flex-col justify-end p-16 text-white w-full">
+          <motion.h1
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="text-5xl font-cormorant font-semibold mb-4 leading-tight"
+          >
+            Định hình <br /> phong cách.
+          </motion.h1>
+          <motion.p
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
+            className="font-montserrat font-light tracking-wide text-white/80 max-w-md"
+          >
+            Gia nhập cộng đồng Hoàng Nam Clothing để tận hưởng các đặc quyền mua
+            sắm và xu hướng thời trang mới nhất.
+          </motion.p>
+        </div>
+      </div>
+
+      {/* Right side Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 relative">
+        <Link
+          href="/"
+          className="absolute top-8 left-8 text-zinc-500 hover:text-zinc-900 transition-colors flex items-center gap-2 group z-20"
+        >
+          <ArrowLeft
+            size={20}
+            className="group-hover:-translate-x-1 transition-transform"
+          />
+          <span className="font-montserrat text-sm uppercase tracking-wider">
+            Trang chủ
+          </span>
         </Link>
-      </Button>
-      <div className="grid grid-cols-4 py-8">
-        <div className="flex flex-col justify-center items-center col-start-2 col-span-2 px-4">
-          <h2 className="uppercase font-Dosis text-3xl mb-4 text-black">
-            Đăng Ký Thành Viên
-          </h2>
-          <p className="italic font-thin mb-4 text-gray-600">
-            Đăng ký để tích điểm và hưởng ưu đãi thành viên khi mua hàng.
-          </p>
 
-          <div className="form mb-4">
-            {/* Email */}
-            <InputForm
-              name="email"
-              type="email"
-              placeholder="Nhập email"
-              value={email}
-              onChange={(value: any) => {
-                setEmail(value);
-                validateField("email", value);
-              }}
-              className="text-gray-500"
-            />
-            {/* {errors.email && <span className="text-red-500 text-sm">{errors.email}</span>} */}
-
-            {/* Số điện thoại */}
-            <InputForm
-              name="phone"
-              type="text"
-              placeholder="Nhập số điện thoại"
-              value={phone}
-              onChange={(value: any) => {
-                setPhone(value);
-                validateField("phone", value);
-              }}
-              className="text-gray-500"
-            />
-            {/* {errors.phone && <span className="text-red-500 text-sm">{errors.phone}</span>} */}
-
-            {/* Mật khẩu */}
-            <InputForm
-              name="password"
-              placeholder="Nhập mật khẩu"
-              type="password"
-              value={password}
-              onChange={(value: any) => {
-                setPassword(value);
-                validateField("password", value);
-              }}
-              className="text-gray-500"
-            />
-            {/* {errors.password && <span className="text-red-500 text-sm">{errors.password}</span>} */}
-
-            {/* Nhập lại mật khẩu */}
-            <InputForm
-              name="confirmPassword"
-              placeholder="Nhập lại mật khẩu"
-              type="password"
-              value={confirmPassword}
-              onChange={(value: any) => {
-                setConfirmPassword(value);
-                validateField("confirmPassword", value);
-              }}
-              className="text-gray-500"
-            />
-            {/* {errors.confirmPassword && <span className="text-red-500 text-sm">{errors.confirmPassword}</span>} */}
-
-            <button
-              className="uppercase mb-4 bg-gray-500 py-4 w-full hover:bg-black text-white font-Dosis"
-              onClick={handleSignUp}
-            >
-              {/* {mutation.isPending ? 'Đang đăng ký...' : 'Tiếp Tục'} */}
-              Tiếp Tục
-            </button>
-
-            <p className="mb-4 text-base italic text-gray-600 text-center">
-              Bằng việc đăng ký, bạn đã đồng ý với <br />
-              <Link href={"/"} className="hover:underline text-blue-500">
-                Điều khoản dịch vụ
-              </Link>{" "}
-              &{" "}
-              <Link href={"/"} className="hover:underline text-blue-500">
-                Chính sách bảo mật
-              </Link>{" "}
-              của Hoàng Nam
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="w-full max-w-md bg-white/70 backdrop-blur-xl border border-white/20 p-10 rounded-3xl shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]"
+        >
+          <div className="mb-8 mt-4">
+            <h2 className="text-4xl font-cormorant font-semibold text-[#1E293B] mb-2 tracking-tight">
+              Đăng ký
+            </h2>
+            <p className="font-montserrat text-sm text-[#475569] font-light">
+              Tạo tài khoản để trải nghiệm tốt nhất
             </p>
           </div>
-        </div>
+
+          <form onSubmit={handleSignUp} className="space-y-4">
+            {/* Họ và tên */}
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-wider font-montserrat text-[#64748B] font-medium ml-1">
+                Họ và tên
+              </label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  if (errors.fullName) setErrors({ ...errors, fullName: "" });
+                }}
+                placeholder="Nguyễn Văn A"
+                className={`w-full px-5 py-3.5 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]/50 transition-all text-gray-500 font-montserrat ${errors.fullName ? "border-red-400 focus:border-red-400 " : "border-zinc-200 focus:border-[#2563EB]"}`}
+              />
+              {errors.fullName && (
+                <p className="text-red-500 text-xs mt-1 ml-1 font-montserrat">
+                  {errors.fullName}
+                </p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-wider font-montserrat text-[#64748B] font-medium ml-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors({ ...errors, email: "" });
+                }}
+                placeholder="example@gmail.com"
+                className={`w-full px-5 py-3.5 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]/50 transition-all text-gray-500 font-montserrat ${errors.email ? "border-red-400 focus:border-red-400 " : "border-zinc-200 focus:border-[#2563EB]"}`}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1 ml-1 font-montserrat">
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
+            {/* Số điện thoại */}
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-wider font-montserrat text-[#64748B] font-medium ml-1">
+                Số điện thoại
+              </label>
+              <input
+                type="text"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  if (errors.phone) setErrors({ ...errors, phone: "" });
+                }}
+                placeholder="0912 345 678"
+                className={`w-full px-5 py-3.5 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]/50 transition-all text-gray-500 font-montserrat ${errors.phone ? "border-red-400 focus:border-red-400 " : "border-zinc-200 focus:border-[#2563EB]"}`}
+              />
+              {errors.phone && (
+                <p className="text-red-500 text-xs mt-1 ml-1 font-montserrat">
+                  {errors.phone}
+                </p>
+              )}
+            </div>
+
+            {/* Mật khẩu */}
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-wider font-montserrat text-[#64748B] font-medium ml-1">
+                Mật khẩu
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) setErrors({ ...errors, password: "" });
+                }}
+                placeholder="••••••••"
+                className={`w-full px-5 py-3.5 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]/50 transition-all text-gray-500 font-montserrat ${errors.password ? "border-red-400 focus:border-red-400 " : "border-zinc-200 focus:border-[#2563EB]"}`}
+              />
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1 ml-1 font-montserrat">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            {/* Xác nhận mật khẩu */}
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-wider font-montserrat text-[#64748B] font-medium ml-1">
+                Nhập lại mật khẩu
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (errors.confirmPassword)
+                    setErrors({ ...errors, confirmPassword: "" });
+                }}
+                placeholder="••••••••"
+                className={`w-full px-5 py-3.5 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]/50 transition-all text-gray-500 font-montserrat ${errors.confirmPassword ? "border-red-400 focus:border-red-400 " : "border-zinc-200 focus:border-[#2563EB]"}`}
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1 ml-1 font-montserrat">
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full relative flex items-center justify-center py-4 mt-2 bg-[#1E293B] text-white rounded-xl hover:bg-[#0F172A] transition-colors overflow-hidden group font-montserrat font-medium"
+            >
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+              {loading ? (
+                <Loader2 className="animate-spin" size={20} />
+              ) : (
+                <span className="relative z-10">Tạo tài khoản</span>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm font-montserrat text-[#64748B]">
+            Đã có tài khoản?{" "}
+            <Link
+              href="/auth/sign-in"
+              className="text-[#2563EB] font-medium hover:underline"
+            >
+              Đăng nhập
+            </Link>
+          </p>
+        </motion.div>
       </div>
     </div>
   );
 };
+
 export default SignUpPage;

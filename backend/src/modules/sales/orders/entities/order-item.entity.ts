@@ -6,14 +6,14 @@ import { ProductVariant } from '@/modules/catalog/products/entities/product_vari
 
 @Entity('order_items')
 export class OrderItem extends BaseEntity {
-  @ManyToOne(() => Order, (order) => order.items)
+  @ManyToOne(() => Order, (order) => order.items, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'orderId' })
   order: Order;
 
   @Column()
   orderId: string;
 
-  @ManyToOne(() => ProductVariant, (variant) => variant.orderItems)
+  @ManyToOne(() => ProductVariant, (variant) => variant.orderItems, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'productVariantId' })
   productVariant: ProductVariant;
 
@@ -21,24 +21,12 @@ export class OrderItem extends BaseEntity {
   productVariantId: string;
 
   //option: lấy thông tin chung của sản phẩm
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'productId' })
   product: Product;
 
-  @Column()
+  @Column({ nullable: true })
   productId: string;
-
-  @Column()
-  productName: string; // Lưu tên lúc mua: "Áo Polo"
-
-  @Column()
-  sku: string; // Lưu SKU lúc mua: "POLO-RED-M"
-
-  @Column()
-  color: string; // Snapshot màu: "Red"
-
-  @Column()
-  size: string; // Snapshot size: "M"
 
   @Column('decimal')
   price: number; // Giá lúc mua

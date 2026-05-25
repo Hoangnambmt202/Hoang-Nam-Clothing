@@ -12,9 +12,12 @@ export class CartItem extends BaseEntity {
   @Column()
   cartId: string;
 
-  @ManyToOne(() => ProductVariant, (variant) => variant.cartItems)
+  @ManyToOne(() => ProductVariant, (variant) => variant.cartItems, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'productVariantId' })
   productVariant: ProductVariant;
+
+  @Column({ nullable: true })
+  productVariantId: string;
 
   @Column()
   productId: string;

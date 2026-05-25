@@ -18,13 +18,20 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+  private generateTokens(user: any) {
+    const payload = { email: user.email, sub: user.id, role: user.role };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    return { accessToken, refreshToken };
+  }
 
-    // Find user by email
-    const user = await this.usersService.findByEmail(email);
+  async login(loginDto: LoginDto) {
+    const { email: identifier, password } = loginDto;
+
+    // Find user by email or phone
+    const user = await this.usersService.findByEmailOrPhone(identifier);
     if (!user) {
-      throw new UnauthorizedException('Email not found');
+      throw new UnauthorizedException('Không tìm thấy tài khoản với email hoặc số điện thoại này');
     }
 
     // Check password
@@ -33,12 +40,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Generate JWT token
-    const payload = { email: user.email, sub: user.id, role: user.role };
-    const accessToken = this.jwtService.sign(payload);
+    const { accessToken, refreshToken } = this.generateTokens(user);
 
     return {
       accessToken,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -52,14 +58,39 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.create(registerDto);
 
-    // Generate JWT token for newly registered user
-    const payload = { email: user.email, sub: user.id, role: user.role };
-    const accessToken = this.jwtService.sign(payload);
+    const { accessToken, refreshToken } = this.generateTokens(user);
 
     return {
       accessToken,
+      refreshToken,
       user,
     };
+  }
+
+  async refreshToken(token: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      const user = await this.usersService.findOne(payload.sub);
+      if (!user) {
+        throw new UnauthorizedException('Không tìm thấy tài khoản tương ứng');
+      }
+
+      const { accessToken, refreshToken: newRefreshToken } = this.generateTokens(user);
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+        },
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn');
+    }
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
@@ -96,3 +127,4 @@ export class AuthService {
     return null;
   }
 }
+

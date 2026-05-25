@@ -22,6 +22,12 @@ import { CategoriesController } from './modules/catalog/categories/categories.co
 import { AuthController } from './modules/auth/auth.controller';
 import { BrandsController } from './modules/catalog/brands/brands.controller';
 import { OrdersController } from './modules/sales/orders/orders.controller';
+import { FilesModule } from './modules/files/files.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { ShippingMethodsModule } from './modules/shipping/shipping_methods/shipping_methods.module';
+import { AddressModule } from './modules/shipping/addresss/address.module';
+import { SystemLogsModule } from './modules/system-logs/system-logs.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -39,6 +45,13 @@ import { OrdersController } from './modules/sales/orders/orders.controller';
     BrandsModule,
     CartModule,
     OrdersModule,
+    FilesModule,
+    PaymentsModule,
+    ShippingMethodsModule,
+    AddressModule,
+    SystemLogsModule,
+    WishlistsModule,
+    ReviewsModule,
   ],
   controllers: [
     AppController,
@@ -47,7 +60,7 @@ import { OrdersController } from './modules/sales/orders/orders.controller';
     CategoriesController,
     AuthController,
     BrandsController,
-    CategoriesController,
+    OrdersController,
   ],
   providers: [AppService],
 })

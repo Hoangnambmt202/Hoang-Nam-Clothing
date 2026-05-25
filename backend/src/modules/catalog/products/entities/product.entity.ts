@@ -2,14 +2,15 @@ import {
   Entity,
   Column,
   ManyToOne,
+  ManyToMany,
   OneToMany,
   JoinColumn,
+  JoinTable,
   Index,
 } from 'typeorm';
 import { Category } from '@/modules/catalog/categories/entities/category.entity';
 import { Brand } from '@/modules/catalog/brands/entities/brands.entity';
 import { ProductVariant } from './product_variant.entity';
-import { ProductImage } from './product_image.entity';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Review } from '@/modules/reviews/entities/review.entity';
 import { Wishlist } from '@/modules/wishlists/entities/wishlist.entity';
@@ -30,6 +31,7 @@ export class Product extends BaseEntity {
 
   @Column('text', { array: true, default: [] })
   tags: string[];
+
 
   @ManyToOne(() => Category, (category) => category.products, {
     onDelete: 'CASCADE',
@@ -55,10 +57,9 @@ export class Product extends BaseEntity {
   })
   variants: ProductVariant[];
 
-  @OneToMany(() => ProductImage, (image) => image.product, {
-    cascade: true,
-  })
-  images: ProductImage[];
+  @ManyToMany(() => Category)
+  @JoinTable({ name: 'product_categories_relation' })
+  categories: Category[];
 
   @OneToMany(() => Review, (review) => review.product)
   reviews: Review[];
