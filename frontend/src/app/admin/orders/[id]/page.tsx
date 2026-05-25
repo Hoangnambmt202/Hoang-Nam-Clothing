@@ -20,27 +20,28 @@ import Image from "next/image";
 
 import { orderApi } from "@/lib/api/order";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 
 export default function OrderDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { accessToken } = useAuth();
 
   useEffect(() => {
-    if (params.id) {
+    if (id) {
       fetchOrder();
     }
-  }, [params.id, accessToken]);
+  }, [id, accessToken]);
 
   const fetchOrder = async () => {
     try {
       setLoading(true);
-      const data = await orderApi.getById(params.id, accessToken || "");
+      const data = await orderApi.getById(id, accessToken || "");
       setOrder(data);
     } catch (error) {
       console.error("Failed to fetch order", error);

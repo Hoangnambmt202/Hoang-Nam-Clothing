@@ -1,27 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { orderApi } from "@/lib/api/order";
 import { useAuth } from "@/hooks/useAuth";
 import { Package, Clock, Truck, CheckCircle, AlertCircle, ArrowLeft, MapPin, Phone, CreditCard } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function UserOrderDetailPage({ params }: { params: { id: string } }) {
+export default function UserOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { user, accessToken } = useAuth();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (params.id && accessToken) {
+    if (id && accessToken) {
       fetchOrder();
     }
-  }, [params.id, accessToken]);
+  }, [id, accessToken]);
 
   const fetchOrder = async () => {
     try {
       setLoading(true);
-      const data = await orderApi.getById(params.id, accessToken || "");
+      const data = await orderApi.getById(id, accessToken || "");
       setOrder(data);
     } catch (error) {
       console.error("Failed to fetch order", error);
@@ -33,7 +34,7 @@ export default function UserOrderDetailPage({ params }: { params: { id: string }
   const handleCancelOrder = async () => {
     if (!confirm("Bạn có chắc muốn hủy đơn hàng này?")) return;
     try {
-      await orderApi.cancel(params.id, accessToken || "");
+      await orderApi.cancel(id, accessToken || "");
       alert("Hủy đơn hàng thành công");
       fetchOrder();
     } catch (error) {
