@@ -16,5 +16,9 @@ export const getDatabaseConfig = (
     autoLoadEntities: true,
     synchronize: true, // Chỉ dùng trong development
     logging: false,
+
+    ssl: {
+      rejectUnauthorized: false,
+    },
   };
 };
