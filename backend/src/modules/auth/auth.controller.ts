@@ -6,6 +6,15 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Response } from 'express';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -19,12 +28,7 @@ export class AuthController {
     const result = await this.authService.login(loginDto);
     
     // Set refresh token in HttpOnly cookie
-    response.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: false, // set to true in production if HTTPS is used
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    response.cookie('refreshToken', result.refreshToken, cookieOptions);
 
     return {
       accessToken: result.accessToken,
@@ -41,12 +45,7 @@ export class AuthController {
     const result = await this.authService.register(registerDto);
 
     // Set refresh token in HttpOnly cookie
-    response.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    response.cookie('refreshToken', result.refreshToken, cookieOptions);
 
     return {
       accessToken: result.accessToken,
@@ -77,12 +76,7 @@ export class AuthController {
     const result = await this.authService.refreshToken(token);
 
     // Update refresh token in HttpOnly cookie
-    response.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    response.cookie('refreshToken', result.refreshToken, cookieOptions);
 
     return {
       accessToken: result.accessToken,
@@ -95,8 +89,8 @@ export class AuthController {
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
     });
     return { message: 'Đăng xuất thành công' };
   }
