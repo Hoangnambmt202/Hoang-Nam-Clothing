@@ -18,7 +18,7 @@ async function bootstrap() {
   );
   // CORS
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://hoang-nam.vercel.app', '*'], // Frontend URLs
+    origin: ['http://localhost:3000', 'https://hoang-nam-clothing.vercel.app'], // Frontend URLs
     credentials: true,
   });
 
@@ -31,7 +31,8 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 8080;
 
-  await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
+  await app.listen(Number(port), '0.0.0.0');
+
+  console.log(`Application is running on port ${port}`);
 }
 bootstrap();
