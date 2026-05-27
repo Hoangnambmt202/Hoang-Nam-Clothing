@@ -134,7 +134,7 @@ export class CartService {
   private async recalculateTotal(cartId: string): Promise<Cart> {
     const cart = await this.cartRepository.findOne({
       where: { id: cartId },
-      relations: ['items', 'items.productVariant', 'items.productVariant.product', 'items.productVariant.product.images'],
+      relations: ['items', 'items.productVariant', 'items.productVariant.product', 'items.productVariant.images'],
     });
 
     if (!cart) throw new NotFoundException('Cart not found');

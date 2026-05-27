@@ -28,7 +28,7 @@ import { usePathname } from "next/navigation";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import MenuItem from "@/types/menu";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   toggleSidebar,
@@ -37,6 +37,7 @@ import {
 } from "@/store/ui/sidebar.slice";
 import { AppDispatch, RootState } from "@/store/store";
 import { useAuth } from "@/hooks/useAuth";
+import { orderApi } from "@/lib/api/order";
 
 const SidebarAdmin = () => {
   const pathname = usePathname();
@@ -44,7 +45,8 @@ const SidebarAdmin = () => {
   const { isOpen: isSidebarOpen, openMenus } = useSelector(
     (state: RootState) => state.sidebar,
   );
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
 
   const initials = user
     ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || "AD"
@@ -285,6 +287,26 @@ const SidebarAdmin = () => {
     dispatch(setOpenMenus(initialOpen));
   }, [pathname]);
 
+  /* ================= FETCH NEW ORDERS COUNT ================= */
+  useEffect(() => {
+    if (!user || !accessToken) return;
+
+    const fetchNewOrdersCount = async () => {
+      try {
+        const stats = await orderApi.getStats(accessToken);
+        if (stats && typeof stats === "object" && "pending" in stats) {
+          setNewOrdersCount(Number(stats.pending));
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải số lượng đơn hàng mới:", err);
+      }
+    };
+
+    fetchNewOrdersCount();
+    const interval = setInterval(fetchNewOrdersCount, 15000); // Tải lại mỗi 15 giây
+    return () => clearInterval(interval);
+  }, [user, accessToken]);
+
   /* ================= RENDER ================= */
   return (
     <aside
@@ -322,7 +344,7 @@ const SidebarAdmin = () => {
                   <button
                     type="button"
                     onClick={() => dispatch(toggleMenu(item.key))}
-                    className={`w-full flex items-center px-3 py-3 rounded-lg transition
+                    className={`w-full flex items-center px-3 py-3 rounded-lg transition relative
                       ${
                         parentActive
                           ? "bg-blue-50 text-blue-600"
@@ -332,19 +354,31 @@ const SidebarAdmin = () => {
                     data-tooltip-id="sidebar-tooltip"
                     data-tooltip-content={item.label}
                   >
-                    <span>{item.icon}</span>
+                    <span className="relative">
+                      {item.icon}
+                      {!isSidebarOpen && item.key === "sale" && newOrdersCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
+                      )}
+                    </span>
 
                     {isSidebarOpen && (
                       <div className="ml-3 flex flex-1 items-center justify-between">
                         <span className="text-sm font-medium">
                           {item.label}
                         </span>
-                        <ChevronDown
-                          size={16}
-                          className={`transition-transform ${
-                            openMenus[item.key] ? "rotate-90" : ""
-                          }`}
-                        />
+                        <div className="flex items-center gap-2">
+                          {item.key === "sale" && newOrdersCount > 0 && (
+                            <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                              {newOrdersCount}
+                            </span>
+                          )}
+                          <ChevronDown
+                            size={16}
+                            className={`transition-transform ${
+                              openMenus[item.key] ? "rotate-90" : ""
+                            }`}
+                          />
+                        </div>
                       </div>
                     )}
                   </button>
@@ -384,7 +418,12 @@ const SidebarAdmin = () => {
                           `}
                         >
                           <span>{child.icon}</span>
-                          <span>{child.label}</span>
+                          <span className="flex-1 text-left">{child.label}</span>
+                          {child.key === "orders" && newOrdersCount > 0 && (
+                            <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                              {newOrdersCount}
+                            </span>
+                          )}
                         </Link>
                       </li>
                     ))}

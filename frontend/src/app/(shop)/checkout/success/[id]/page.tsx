@@ -45,14 +45,14 @@ export default function CheckoutSuccessPage({
           </p>
 
           {/* Hướng dẫn chuyển khoản nếu chọn Bank Transfer */}
-          {order.paymentTransactions?.[0]?.paymentMethod === "BANK_TRANSFER" && (
+          {order.paymentMethod === "BANK_TRANSFER" && (
             <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 text-left mb-8">
               <div className="flex items-center gap-3 mb-4 text-blue-900">
                 <Wallet />
                 <h3 className="font-bold text-lg">Hướng dẫn thanh toán</h3>
               </div>
               <p className="text-sm text-blue-800 mb-4">
-                Vui lòng chuyển khoản số tiền <span className="font-bold text-lg">{(order.finalAmount || order.totalAmount).toLocaleString('vi-VN')}đ</span> vào tài khoản dưới đây để chúng tôi tiến hành giao hàng:
+                Vui lòng chuyển khoản số tiền <span className="font-bold text-lg">{Number(order.finalAmount || order.totalAmount).toLocaleString('vi-VN')}đ</span> vào tài khoản dưới đây để chúng tôi tiến hành giao hàng:
               </p>
               <div className="bg-white p-4 rounded-xl border border-blue-100 space-y-2">
                 <div className="flex justify-between">
@@ -84,7 +84,10 @@ export default function CheckoutSuccessPage({
                 <p className="font-semibold text-black">{order.shippingAddress?.recipientName}</p>
                 <p>{order.shippingAddress?.phone}</p>
                 <p>{order.shippingAddress?.addressLine}</p>
-                <p>{order.shippingAddress?.ward}, {order.shippingAddress?.district}</p>
+                <p>
+                  {order.shippingAddress?.ward}
+                  {order.shippingAddress?.district ? `, ${order.shippingAddress.district}` : ""}
+                </p>
                 <p>{order.shippingAddress?.province}</p>
               </div>
             </div>

@@ -20,6 +20,11 @@ export const orderApi = {
       headers: { Authorization: `Bearer ${token}` },
     }),
 
+  getStats: (token: string) =>
+    apiFetch("/orders/stats", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
   updateStatus: (id: string, action: "confirm" | "process" | "ship" | "deliver", token: string) =>
     apiFetch(`/orders/${id}/${action}`, {
       method: "POST",

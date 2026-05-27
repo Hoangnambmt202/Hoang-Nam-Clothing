@@ -16,31 +16,36 @@ export class AddressController {
   constructor(private readonly addressService: AddressService) {}
 
   @Get()
-  findAll(@Request() req: AuthenticatedRequest) {
-    return this.addressService.findAll(req.user.id);
+  async findAll(@Request() req: AuthenticatedRequest) {
+    const data = await this.addressService.findAll(req.user.id);
+    return { success: true, message: 'Addresses retrieved successfully', data };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    return this.addressService.findOne(id, req.user.id);
+  async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    const data = await this.addressService.findOne(id, req.user.id);
+    return { success: true, message: 'Address retrieved successfully', data };
   }
 
   @Post()
-  create(@Request() req: AuthenticatedRequest, @Body() createAddressDto: any) {
-    return this.addressService.create(req.user.id, createAddressDto);
+  async create(@Request() req: AuthenticatedRequest, @Body() createAddressDto: any) {
+    const data = await this.addressService.create(req.user.id, createAddressDto);
+    return { success: true, message: 'Address created successfully', data };
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Request() req: AuthenticatedRequest,
     @Body() updateAddressDto: any,
   ) {
-    return this.addressService.update(id, req.user.id, updateAddressDto);
+    const data = await this.addressService.update(id, req.user.id, updateAddressDto);
+    return { success: true, message: 'Address updated successfully', data };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    return this.addressService.remove(id, req.user.id);
+  async remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    await this.addressService.remove(id, req.user.id);
+    return { success: true, message: 'Address deleted successfully', data: null };
   }
 }
