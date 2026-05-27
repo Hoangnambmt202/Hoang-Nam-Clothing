@@ -53,7 +53,6 @@ export class CheckoutDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsIn(['COD', 'BANK_TRANSFER', 'VNPAY', 'MOMO'])
   paymentMethod: string;
 
   @IsOptional()

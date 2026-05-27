@@ -320,7 +320,7 @@ export class OrdersService {
   async findOne(id: string): Promise<Order> {
     const order = await this.ordersRepository.findOne({
       where: { id },
-      relations: ['user', 'items', 'items.product', 'items.productVariant'],
+      relations: ['user', 'items', 'items.product', 'items.productVariant', 'items.productVariant.images', 'shippingMethod'],
     });
 
     if (!order) {
@@ -342,7 +342,7 @@ export class OrdersService {
   }> {
     const [orders, total] = await this.ordersRepository.findAndCount({
       where: { userId },
-      relations: ['items', 'items.product', 'items.productVariant'],
+      relations: ['items', 'items.product', 'items.productVariant', 'items.productVariant.images'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,

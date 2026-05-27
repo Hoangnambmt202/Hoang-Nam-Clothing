@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
 export class ShippingAddressDto {
   @IsNotEmpty()
@@ -17,9 +17,9 @@ export class ShippingAddressDto {
   @IsString()
   ward: string; // Phường/Xã
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  district: string; // Quận/Huyện
+  district?: string; // Quận/Huyện
 
   @IsNotEmpty()
   @IsString()

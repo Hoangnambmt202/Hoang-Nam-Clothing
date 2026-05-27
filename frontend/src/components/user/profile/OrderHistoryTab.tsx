@@ -18,10 +18,11 @@ type Order = {
   thumbnail?: string;
 };
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<string, any> = {
   pending: { label: "Chờ xác nhận", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+  confirmed: { label: "Đã xác nhận", icon: CheckCircle, color: "text-blue-600", bg: "bg-blue-50" },
   processing: { label: "Đang xử lý", icon: Package, color: "text-blue-600", bg: "bg-blue-50" },
-  shipping: { label: "Đang giao", icon: Truck, color: "text-sky-600", bg: "bg-sky-50" },
+  shipped: { label: "Đang giao", icon: Truck, color: "text-sky-600", bg: "bg-sky-50" },
   delivered: { label: "Đã giao", icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
   cancelled: { label: "Đã huỷ", icon: XCircle, color: "text-red-500", bg: "bg-red-50" },
 };
@@ -29,13 +30,13 @@ const STATUS_CONFIG = {
 const STATUS_TABS = [
   { key: "all", label: "Tất cả" },
   { key: "pending", label: "Chờ xác nhận" },
-  { key: "shipping", label: "Đang giao" },
+  { key: "shipped", label: "Đang giao" },
   { key: "delivered", label: "Đã giao" },
   { key: "cancelled", label: "Đã huỷ" },
 ] as const;
 
 const OrderCard = ({ order }: { order: Order }) => {
-  const cfg = STATUS_CONFIG[order.status];
+  const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
   const Icon = cfg.icon;
 
   return (

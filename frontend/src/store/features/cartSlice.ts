@@ -11,6 +11,7 @@ export interface CartItem {
   variantId?: string;
   size?: string;
   color?: string;
+  createdAt?: string; // For stable sorting
 }
 
 interface CartState {
@@ -53,6 +54,7 @@ const mapDbCartToState = (dbCart: any): CartItem[] => {
       variantId: dbItem.productVariantId,
       size: variant?.size || "",
       color: variant?.color || "",
+      createdAt: dbItem.createdAt,
     };
   });
 };
@@ -109,7 +111,10 @@ const cartSlice = createSlice({
       if (existingItem) {
         existingItem.quantity += quantity;
       } else {
-        state.items.push(action.payload);
+        state.items.push({
+          ...action.payload,
+          createdAt: action.payload.createdAt || new Date().toISOString(),
+        });
       }
 
       if (typeof window !== "undefined") {

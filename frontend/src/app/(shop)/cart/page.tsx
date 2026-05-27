@@ -48,6 +48,18 @@ const GIFTS = [
 const CartPage = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state: RootState) => state.cart.items);
+
+  // Sắp xếp ổn định (stable sorting) theo createdAt để tránh sản phẩm bị nhảy vị trí khi thay đổi số lượng
+  const sortedCartItems = [...cartItems].sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    
+    if (dateA !== dateB) return dateA - dateB;
+    
+    const keyA = a.cartItemId || `${a.id}-${a.variantId}`;
+    const keyB = b.cartItemId || `${b.id}-${b.variantId}`;
+    return keyA.localeCompare(keyB);
+  });
   const { accessToken } = useSelector((state: RootState) => state.auth);
 
   // Lưu trữ chi tiết sản phẩm để lấy thông tin các biến thể (variants)
@@ -213,7 +225,7 @@ const CartPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cột Trái: Danh sách sản phẩm */}
             <div className="lg:col-span-2 space-y-4">
-              {cartItems.map((item: any, idx: number) => {
+              {sortedCartItems.map((item: any, idx: number) => {
                 const productData = productDetails[item.id];
 
                 // Lấy các tùy chọn màu và size từ variants

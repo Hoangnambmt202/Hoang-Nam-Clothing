@@ -12,6 +12,8 @@ import {
   Request,
   ParseIntPipe,
   DefaultValuePipe,
+  UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -69,9 +71,24 @@ export class OrdersController {
     return this.ordersService.getOrderStats();
   }
 
+  @Public()
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Order> {
+  async findOne(@Request() req, @Param('id') id: string): Promise<Order> {
     const order = await this.ordersService.findOne(id);
+    
+    // Nếu có token (req.user), kiểm tra quyền:
+    // - Admin được xem mọi đơn hàng.
+    // - Khách hàng chỉ được xem đơn hàng của chính mình (order.userId === req.user.id).
+    // Nếu không có token (guest), cho phép xem đơn hàng (vì đây là xem sau khi đặt hàng của khách vãng lai dùng UUID).
+    if (req.user) {
+      const isOwner = order.userId === req.user.id;
+      const isAdmin = req.user.role === Role.ADMIN;
+      if (!isOwner && !isAdmin) {
+        throw new ForbiddenException('Bạn không có quyền xem đơn hàng này');
+      }
+    }
+    
     return order;
   }
 

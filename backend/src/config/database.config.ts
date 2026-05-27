@@ -17,8 +17,9 @@ export const getDatabaseConfig = (
     synchronize: true, // Chỉ dùng trong development
     logging: false,
 
-    ssl: {
-      rejectUnauthorized: false,
-    },
+    ssl:
+      configService.get<string>('NODE_ENV') === 'production'
+        ? { rejectUnauthorized: false }
+        : false,
   };
 };

@@ -179,32 +179,48 @@ export default function ProductsPage() {
               )}
             </div>
             
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                const firstVariant = product.variants?.[0];
-                const itemObj = {
-                  id: product.id,
-                  name: product.name,
-                  price: Number(price),
-                  quantity: 1,
-                  image: mainImage,
-                  variantId: firstVariant?.id,
-                  size: firstVariant?.size || "",
-                  color: firstVariant?.color || "",
-                };
-                
-                if (accessToken) {
-                  dispatch(addToCartDb({ item: itemObj, token: accessToken }) as any);
-                } else {
-                  dispatch(addItem(itemObj));
-                }
-                showToast.success(`Đã thêm ${product.name} vào giỏ hàng!`, { duration: 2000 });
-              }}
-              className="p-3 bg-slate-50 hover:bg-[#1E293B] hover:text-white text-slate-700 rounded-xl transition-colors shadow-sm"
-            >
-              <ShoppingCart size={18} />
-            </button>
+            {(product.variants?.length ?? 0) > 1 ? (
+              // Multiple variants → go to detail page to pick size/color
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push(`/products/${product.id}`);
+                }}
+                title="Chọn biến thể sản phẩm"
+                className="flex items-center gap-1.5 px-3 py-2.5 bg-slate-50 hover:bg-[#1E293B] hover:text-white text-slate-700 rounded-xl transition-all duration-200 shadow-sm text-xs font-montserrat font-medium whitespace-nowrap"
+              >
+                <ShoppingCart size={15} />
+                <span>Chọn mẫu</span>
+              </button>
+            ) : (
+              // Single variant (or no variant) → add directly
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  const firstVariant = product.variants?.[0];
+                  const itemObj = {
+                    id: product.id,
+                    name: product.name,
+                    price: Number(price),
+                    quantity: 1,
+                    image: mainImage,
+                    variantId: firstVariant?.id,
+                    size: firstVariant?.size || "",
+                    color: firstVariant?.color || "",
+                  };
+                  if (accessToken) {
+                    dispatch(addToCartDb({ item: itemObj, token: accessToken }) as any);
+                  } else {
+                    dispatch(addItem(itemObj));
+                  }
+                  showToast.success(`Đã thêm ${product.name} vào giỏ hàng!`, { duration: 2000 });
+                }}
+                title="Thêm vào giỏ hàng"
+                className="p-3 bg-slate-50 hover:bg-[#1E293B] hover:text-white text-slate-700 rounded-xl transition-all duration-200 shadow-sm"
+              >
+                <ShoppingCart size={18} />
+              </button>
+            )}
           </div>
         </div>
       </motion.div>
